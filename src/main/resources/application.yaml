@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: souplesse-pilates
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/souplesse_pilates}
+    username: ${SPRING_DATASOURCE_USERNAME:pilates_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:pilates_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        "[format_sql]": true
+  sql:
+    init:
+      mode: never
+
+server:
+  port: ${SERVER_PORT:8080}
