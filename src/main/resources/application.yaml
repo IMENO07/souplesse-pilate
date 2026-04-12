@@ -16,20 +16,22 @@ spring:
     init:
       mode: never
   mail:
-    host: ${SPRING_MAIL_HOST:localhost}
-    port: ${SPRING_MAIL_PORT:1025}
-    username: ${SPRING_MAIL_USERNAME:}
-    password: ${SPRING_MAIL_PASSWORD:}
+    host: smtp.gmail.com
+    port: 587
+    username: imene7905@gmail.com
+    password: gxstwinuubgmxhsb
     properties:
       mail:
         smtp:
-          auth: ${SPRING_MAIL_SMTP_AUTH:false}
+          auth: true
           starttls:
-            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:false}
+            enable: true
+            required: true   
 
 server:
   port: ${SERVER_PORT:8080}
 
 app:
   mail:
-    from: ${APP_MAIL_FROM:no-reply@souplesse-pilates.local}
+    from: imene7905@gmail.com          
+    studio-name: "Souplesse Pilates Studio"

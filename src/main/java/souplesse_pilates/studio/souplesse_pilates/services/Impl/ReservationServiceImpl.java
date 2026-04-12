@@ -31,44 +31,39 @@ public class ReservationServiceImpl implements ReservationService {
 
         // 1. Load course
         Course course = courseRepository.findById(dto.getCourseId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Course not found with id: " + dto.getCourseId()));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Course not found with id: " + dto.getCourseId()));
 
         // 2. Check course is not full
         if (course.getAvailableSpots() <= 0) {
             throw new IllegalStateException(
-                "This course is fully booked. No spots remaining.");
+                    "This course is fully booked. No spots remaining.");
         }
 
-        // 3. Block duplicate bookings for same email + course
+        // 3. Block duplicate bookings
         if (reservationRepository.existsByEmailAndCourseId(dto.getEmail(), dto.getCourseId())) {
             throw new IllegalArgumentException(
-                "A booking already exists for " + dto.getEmail() + " in this course.");
+                    "A booking already exists for " + dto.getEmail() + " in this course.");
         }
 
-        // 4. Create and save reservation
+        // 4. Save reservation
         Reservation reservation = Reservation.builder()
-            .firstName(dto.getFirstName())
-            .lastName(dto.getLastName())
-            .email(dto.getEmail())
-            .course(course)
-            .build();
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .email(dto.getEmail())
+                .course(course)
+                .build();
 
         reservationRepository.save(reservation);
 
-        // 5. Increment reserved spots and update course status
+        // 5. Update course spot count
         course.setReservedSpots(course.getReservedSpots() + 1);
         course.updateStatus();
         courseRepository.save(course);
 
-        // 6. Send emails — failures are logged but do NOT roll back the booking
-        try {
-            emailService.sendClientConfirmation(reservation);
-            emailService.sendInstructorNotification(reservation);
-        } catch (Exception e) {
-            log.error("Email sending failed for reservation id={} — booking is still valid. Error: {}",
-                reservation.getId(), e.getMessage());
-        }
+        // 6. Send emails asynchronously — never blocks, never rolls back booking
+        emailService.sendClientConfirmation(reservation);
+        emailService.sendInstructorNotification(reservation);
 
         return reservation;
     }
@@ -88,8 +83,8 @@ public class ReservationServiceImpl implements ReservationService {
     public Reservation updateReservation(Long id, UpdateReservationRequestDto dto) {
 
         Reservation reservation = reservationRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Reservation not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Reservation not found with id: " + id));
 
         // If the email is changing, make sure the new email doesn't
         // already have a booking for the same course
@@ -97,7 +92,7 @@ public class ReservationServiceImpl implements ReservationService {
             if (reservationRepository.existsByEmailAndCourseId(
                     dto.getEmail(), reservation.getCourse().getId())) {
                 throw new IllegalArgumentException(
-                    "A booking already exists for " + dto.getEmail() + " in this course.");
+                        "A booking already exists for " + dto.getEmail() + " in this course.");
             }
         }
 
@@ -113,8 +108,8 @@ public class ReservationServiceImpl implements ReservationService {
     public void deleteReservation(Long id) {
 
         Reservation reservation = reservationRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Reservation not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Reservation not found with id: " + id));
 
         // Free up the spot on the course
         Course course = reservation.getCourse();

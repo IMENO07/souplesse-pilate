@@ -7,14 +7,15 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: your-email@gmail.com
-    password: your-app-password   # Use a Gmail App Password, not your real password
+    username: imene7905@gmail.com
+    password: gxstwinuubgmxhsb
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -24,6 +25,8 @@ spring:
   sql:
     init:
       mode: never
+
 app:
   mail:
-    from: your-email@gmail.com
+    from: imene7905@gmail.com
+    studio-name: "Souplesse Pilates Studio"
