@@ -16,6 +16,7 @@ public record CourseResponseDto(
     LocalDate date,
     LocalTime time,
     Integer capacity,
+    Integer reservedSpots,
     CourseStatus status,
     URL imageUrl,
     Long instructorId

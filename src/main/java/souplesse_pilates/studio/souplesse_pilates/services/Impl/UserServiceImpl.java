@@ -36,8 +36,8 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = User.builder()
-            .firstName(userRequestDto.getFirstname())
-            .lastName(userRequestDto.getLastname())
+            .firstName(userRequestDto.getFirstName())
+            .lastName(userRequestDto.getLastName())
             .email(userRequestDto.getEmail())
             .role(UserRole.CLIENT)
             .build();
@@ -59,8 +59,8 @@ public User getAdminByEmail(String email) {
         }
 
         User instructor = User.builder()
-            .firstName(userRequestDto.getFirstname())
-            .lastName(userRequestDto.getLastname())
+            .firstName(userRequestDto.getFirstName())
+            .lastName(userRequestDto.getLastName())
             .email(userRequestDto.getEmail())
             .role(UserRole.INSTRUCTOR)
             .build();

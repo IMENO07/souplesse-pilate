@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class AdminAuthController {
     private final JwtService jwtService;
 
     @PostMapping("login")
-    public ResponseEntity<String> login(@Valid @RequestBody AdminLoginRequestDto loginRequest) {
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody AdminLoginRequestDto loginRequest) {
 
         User admin = userService.getAdminByEmail(loginRequest.getEmail());
 
@@ -34,6 +36,7 @@ public class AdminAuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return ResponseEntity.ok(jwtService.generateToken(admin.getEmail(), admin.getRole().name()));
+        String token = jwtService.generateToken(admin.getEmail(), admin.getRole().name());
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }

@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 public class UserRequestDto {
 
     @NotBlank(message = "Firstname is required")
-    private String firstname;
+    private String firstName;
 
     @NotBlank(message = "Lastname is required")
-    private String lastname;
+    private String lastName;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
