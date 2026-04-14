@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequestDto {
+public class UpdateReservationRequestDto {
 
-    @NotBlank(message = "Firstname is required")
+    @NotBlank(message = "First name is required")
     private String firstName;
 
-    @NotBlank(message = "Lastname is required")
+    @NotBlank(message = "Last name is required")
     private String lastName;
 
     @NotBlank(message = "Email is required")

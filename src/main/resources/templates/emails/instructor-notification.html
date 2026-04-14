@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff;
+                 border-radius: 8px; overflow: hidden;
+                 box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: #2e7d32; padding: 32px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; }
+    .header p  { color: #c8e6c9; margin: 6px 0 0; font-size: 14px; }
+    .body { padding: 32px; color: #333; }
+    .body p { line-height: 1.7; margin: 0 0 16px; }
+    .section-title { font-size: 13px; font-weight: bold; color: #888;
+                     text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 8px; }
+    .detail-box { background: #f1f8e9; border-left: 4px solid #2e7d32;
+                  border-radius: 4px; padding: 20px 24px; margin-bottom: 16px; }
+    .detail-box table { width: 100%; border-collapse: collapse; }
+    .detail-box td { padding: 6px 0; font-size: 15px; }
+    .detail-box td:first-child { color: #2e7d32; font-weight: bold; width: 140px; }
+    .spots { display: inline-block; background: #fff3e0; color: #e65100;
+             border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: bold; }
+    .footer { background: #f9f9f9; padding: 20px 32px; text-align: center;
+              font-size: 12px; color: #999; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>New Booking Received 🎉</h1>
+    <p th:text="${studioName}">Studio</p>
+  </div>
+
+  <div class="body">
+    <p>Hello <strong th:text="${instructorFirstName}">Instructor</strong>,</p>
+    <p>A new student has just booked one of your classes.</p>
+
+    <p class="section-title">Student Details</p>
+    <div class="detail-box">
+      <table>
+        <tr>
+          <td>Full Name</td>
+          <td th:text="${clientName}">Amira Bensalem</td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td th:text="${clientEmail}">amira@example.com</td>
+        </tr>
+      </table>
+    </div>
+
+    <p class="section-title">Class Details</p>
+    <div class="detail-box">
+      <table>
+        <tr>
+          <td>Class</td>
+          <td th:text="${courseType}">YOGA</td>
+        </tr>
+        <tr>
+          <td>Date</td>
+          <td th:text="${courseDate}">2026-05-15</td>
+        </tr>
+        <tr>
+          <td>Time</td>
+          <td th:text="${courseTime}">09:00</td>
+        </tr>
+        <tr>
+          <td>Spots Left</td>
+          <td><span class="spots" th:text="${availableSpots} + ' remaining'">9 remaining</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <p>Log in to the admin dashboard to view all bookings.</p>
+  </div>
+
+  <div class="footer">
+    <p th:text="${studioName}">Studio</p>
+    <p>This is an automated message, please do not reply.</p>
+  </div>
+
+</div>
+</body>
+</html>
+

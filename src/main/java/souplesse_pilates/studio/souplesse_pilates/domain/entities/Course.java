@@ -43,7 +43,8 @@ public class Course {
     private Integer capacity;
     
     @Column(name = "reserved_spots", nullable = false)
-    private Integer reservedSpots;
+    @Builder.Default
+    private Integer reservedSpots = 0;
 
     @Column(name = "image_url")
     private URL imageUrl;

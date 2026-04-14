@@ -15,6 +15,26 @@ spring:
   sql:
     init:
       mode: never
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: imene7905@gmail.com
+    password: gxstwinuubgmxhsb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  web:
+    resources:
+      static-locations: classpath:/static/
 
 server:
   port: ${SERVER_PORT:8080}
+
+app:
+  mail:
+    from: imene7905@gmail.com          
+    studio-name: "Souplesse Pilates Studio"

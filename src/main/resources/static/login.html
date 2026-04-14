@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Souplesse — Accès Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400;500&display=swap"/>
+  <style>
+    :root {
+      --deep: #2C4A5A;
+      --ocean: #6B9EAF;
+      --sand: #E8D5B7;
+      --cream: #F5F0E8;
+      --serif: 'Cormorant Garamond', serif;
+      --sans: 'Jost', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--deep);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .login-logo-name {
+      font-family: var(--serif);
+      font-size: 26px;
+      letter-spacing: .22em;
+      color: white;
+    }
+    .login-logo-sub {
+      font-size: 9px;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+    .login-badge {
+      display: inline-block;
+      background: var(--ocean);
+      color: white;
+      font-size: 8px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 2px;
+      margin-top: 10px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--ocean);
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 13px 16px;
+      font-size: 14px;
+      font-family: var(--sans);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 2px;
+      color: white;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--ocean); }
+    .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+    .error-msg {
+      font-size: 12px;
+      color: #F19999;
+      margin-bottom: 16px;
+      min-height: 16px;
+      text-align: center;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 11px;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      background: linear-gradient(135deg, var(--ocean), var(--deep));
+      border: 1px solid var(--ocean);
+      color: white;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .login-btn:hover { opacity: .88; }
+    .login-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link:hover { color: rgba(255,255,255,0.6); }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-name">SOUPLESSE</div>
+      <div class="login-logo-sub">Pilates Studio · Alger</div>
+      <span class="login-badge">Manager Portal</span>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Adresse Email</label>
+      <input type="email" id="email" placeholder="admin@fitbook.com" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label for="password">Mot de Passe</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+
+    <p class="error-msg" id="errorMsg"></p>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
+      Connexion →
+    </button>
+
+    <a href="index.html" class="back-link">← Vue Client</a>
+  </div>
+
+  <script src="./js/api.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) {
+      window.location.href = 'admin.html';
+    }
+
+    // Allow Enter key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    async function doLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorEl  = document.getElementById('errorMsg');
+      const btn      = document.getElementById('loginBtn');
+
+      errorEl.textContent = '';
+
+      if (!email || !password) {
+        errorEl.textContent = 'Veuillez remplir tous les champs.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Connexion…';
+
+      try {
+        await AuthAPI.login(email, password);
+        window.location.href = 'admin.html';
+      } catch (err) {
+        errorEl.textContent = err.message.includes('401') || err.message.toLowerCase().includes('invalid')
+          ? 'Email ou mot de passe incorrect.'
+          : 'Erreur de connexion. Vérifiez que le serveur est démarré.';
+        btn.disabled = false;
+        btn.textContent = 'Connexion →';
+      }
+    }
+  </script>
+</body>
+</html>

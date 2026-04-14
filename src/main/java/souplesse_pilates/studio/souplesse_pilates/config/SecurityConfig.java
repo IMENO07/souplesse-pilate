@@ -32,37 +32,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Preflight
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Auth
-                .requestMatchers("/auth/**").permitAll()
-                // Public course browsing
-                .requestMatchers(HttpMethod.GET, "/courses/**").permitAll()
-                // Public booking
-                .requestMatchers("/reservations/**").permitAll()
-                // Admin only
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                // Everything else
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((req, res, e) -> {
-                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    res.setContentType("application/json");
-                    res.getWriter().write("{\"error\":\"Unauthorized - token missing or invalid\"}");
-                })
-                .accessDeniedHandler((req, res, e) -> {
-                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    res.setContentType("application/json");
-                    res.getWriter().write("{\"error\":\"Forbidden - insufficient role\"}");
-                })
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // Preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Static resources and HTML pages
+                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**")
+                        .permitAll()
+                        // Auth
+                        .requestMatchers("/auth/**").permitAll()
+                        // Public course browsing
+                        .requestMatchers(HttpMethod.GET, "/courses/**").permitAll()
+                        // Public booking
+                        .requestMatchers("/reservations/**").permitAll()
+                        // Admin only
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // Everything else
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"Unauthorized - token missing or invalid\"}");
+                        })
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"Forbidden - insufficient role\"}");
+                        }))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -76,7 +76,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
