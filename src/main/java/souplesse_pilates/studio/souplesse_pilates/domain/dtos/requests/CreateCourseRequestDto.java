@@ -19,6 +19,11 @@ public class CreateCourseRequestDto {
     @NotNull
     private CourseType type;
 
+    private String title;
+    private String coachFirstName;
+    private String coachLastName;
+    private String coachEmail;
+
     @NotBlank
     private String description;
 

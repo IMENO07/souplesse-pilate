@@ -47,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             if (!jwtService.isValid(token)) {
-                sendError(response, "Token expired or invalid");
+                filterChain.doFilter(request, response);
                 return;
             }
 
@@ -63,16 +63,12 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            sendError(response, "Token processing failed: " + e.getMessage());
+            filterChain.doFilter(request, response);
             return;
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void sendError(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"" + message + "\"}");
-    }
+
 }

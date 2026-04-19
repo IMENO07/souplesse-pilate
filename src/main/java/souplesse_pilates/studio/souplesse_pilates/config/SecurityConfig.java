@@ -25,6 +25,7 @@ import souplesse_pilates.studio.souplesse_pilates.security.JwtFilter;
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
@@ -34,20 +35,22 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Static resources and HTML pages
-                        .requestMatchers("/", "/*.html", "/login", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**")
+                        .requestMatchers("/", "/index.html", "/login.html", "/admin.html", "/booking.html", "/login", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**", "/assets/**")
                         .permitAll()
                         // Auth
                         .requestMatchers("/auth/**").permitAll()
                         // Public course browsing
-                        .requestMatchers(HttpMethod.GET, "/courses/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/courses", "/courses/**").permitAll()
                         // Public booking
-                        .requestMatchers("/reservations/**").permitAll()
+                        .requestMatchers("/reservations", "/reservations/**").permitAll()
                         // Admin only
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Everything else
@@ -77,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:8080"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:8080", "http://localhost:8000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

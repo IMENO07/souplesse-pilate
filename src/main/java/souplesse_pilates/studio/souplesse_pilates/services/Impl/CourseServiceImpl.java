@@ -40,6 +40,10 @@ public class CourseServiceImpl implements CourseService {
             .date(dto.getDate())
             .time(dto.getTime())
             .capacity(dto.getCapacity())
+            .title(dto.getTitle())
+            .coachFirstName(dto.getCoachFirstName())
+            .coachLastName(dto.getCoachLastName())
+            .coachEmail(dto.getCoachEmail())
             .imageUrl(dto.getImageUrl())
             .instructor(instructor)
             .build();
@@ -81,6 +85,19 @@ public class CourseServiceImpl implements CourseService {
 
         if (dto.getImageUrl() != null) {
             course.setImageUrl(dto.getImageUrl());
+        }
+
+        if (dto.getTitle() != null) {
+            course.setTitle(dto.getTitle());
+        }
+        if (dto.getCoachFirstName() != null) {
+            course.setCoachFirstName(dto.getCoachFirstName());
+        }
+        if (dto.getCoachLastName() != null) {
+            course.setCoachLastName(dto.getCoachLastName());
+        }
+        if (dto.getCoachEmail() != null) {
+            course.setCoachEmail(dto.getCoachEmail());
         }
 
         if (dto.getInstructorId() != null) {

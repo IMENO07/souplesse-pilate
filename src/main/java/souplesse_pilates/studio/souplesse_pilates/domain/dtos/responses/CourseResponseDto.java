@@ -11,6 +11,10 @@ import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseType;
 public record CourseResponseDto(
     Long id,
     CourseType type,
+    String title,
+    String coachFirstName,
+    String coachLastName,
+    String coachEmail,
     String description,
     BigDecimal price,
     LocalDate date,

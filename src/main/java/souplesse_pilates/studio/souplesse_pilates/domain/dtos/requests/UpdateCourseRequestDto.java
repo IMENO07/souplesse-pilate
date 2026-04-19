@@ -15,6 +15,10 @@ import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseType;
 @AllArgsConstructor
 public class UpdateCourseRequestDto {
     private CourseType type;
+    private String title;
+    private String coachFirstName;
+    private String coachLastName;
+    private String coachEmail;
     private String description;
     private BigDecimal price;
     private LocalDate date;

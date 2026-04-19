@@ -1,263 +1,180 @@
 /* ── ADMIN DASHBOARD LOGIC ───────────────────────────
-    All data now comes from the Spring Boot API.
-    No localStorage used for course/client data.
+   Handles adding / deleting courses and managing clients.
+   All data is fetched via API (courses.js -> api.js).
 ─────────────────────────────────────────────────────── */
 
-// Guard: redirect to login if no token
-if (!Auth.isLoggedIn()) {
-  window.location.href = 'login.html';
-}
-
 let editingCourseId = null;
-let allInstructors  = [];
-let allCourses      = [];
-let allReservations = [];
 
-/* ── INIT ───────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
+  renderAdminTable();
+  renderClientsTable();
   setMinDateTime();
-  setupLogout();
-  await loadAll();
+  refreshStats();
 });
 
-async function loadAll() {
-  try {
-    await Promise.all([
-      loadInstructors(),
-      loadCourses(),
-      loadReservations(),
-    ]);
-    refreshStats();
-  } catch (err) {
-    showToast('Erreur de chargement: ' + err.message);
-  }
-}
+const setMinDateTime = () => {
+  const input = document.getElementById('fieldDateTime');
+  if (!input) return;
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  input.min = now.toISOString().slice(0, 16);
+};
 
-/* ── LOGOUT ─────────────────────────────────────────── */
-function setupLogout() {
-  const footer = document.querySelector('.sidebar-footer');
-  if (!footer) return;
-  const logoutBtn = document.createElement('a');
-  logoutBtn.href = '#';
-  logoutBtn.className = 'sidebar-back';
-  logoutBtn.style.marginTop = '12px';
-  logoutBtn.innerHTML = `
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-    Déconnexion
-  `;
-  logoutBtn.addEventListener('click', e => {
-    e.preventDefault();
-    AuthAPI.logout();
-  });
-  footer.appendChild(logoutBtn);
-}
-
-/* ── LOAD INSTRUCTORS ───────────────────────────────── */
-async function loadInstructors() {
-  allInstructors = await InstructorsAPI.getAll();
-  populateInstructorSelect();
-}
-
-function populateInstructorSelect() {
-  const sel = document.getElementById('fieldInstructor');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Choisir un instructeur —</option>' +
-    allInstructors.map(i => `<option value="${i.id}">${i.firstName} ${i.lastName}</option>`).join('');
-}
-
-/* ── LOAD COURSES ───────────────────────────────────── */
-async function loadCourses() {
-  allCourses = await CoursesAPI.getAll();
-  renderAdminTable();
-  populateCourseSelect();
-}
-
-/* ── LOAD RESERVATIONS ──────────────────────────────── */
-async function loadReservations() {
-  allReservations = await ReservationsAPI.getAll();
-  renderClientsTable();
-}
-
-/* ── STATS ──────────────────────────────────────────── */
-function refreshStats() {
-  const now    = new Date();
-  const active = allCourses.filter(c => new Date(c.date + 'T' + c.time) > now);
-  document.getElementById('statActive').textContent  = active.length;
-  document.getElementById('statBooked').textContent  = allReservations.length;
-  document.getElementById('statClients').textContent = new Set(allReservations.map(r => r.email)).size;
-}
-
-/* ── SET MIN DATETIME ───────────────────────────────── */
-function setMinDateTime() {
-  ['fieldDate', 'fieldTime'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.type === 'date') {
-      const now = new Date();
-      el.min = now.toISOString().slice(0, 10);
-    }
-  });
-}
-
-/* ── ADD / UPDATE COURSE ────────────────────────────── */
 const addCourse = async () => {
+  const fields = {
+    title:           document.getElementById('fieldTitle'),
+    coachNom:        document.getElementById('fieldCoachNom'),
+    coachPrenom:     document.getElementById('fieldCoachPrenom'),
+    coachEmail:      document.getElementById('fieldCoachEmail'),
+    dateTime:        document.getElementById('fieldDateTime'),
+    capacity:        document.getElementById('fieldCapacity'),
+    image:           document.getElementById('fieldImage'),
+    description:     document.getElementById('fieldDescription'),
+    price:           document.getElementById('fieldPrice'),
+  };
+
   const errorEl = document.getElementById('adminFormError');
   errorEl.textContent = '';
 
-  const type         = document.getElementById('fieldTitle')?.value.trim();
-  const description  = document.getElementById('fieldDescription')?.value.trim();
-  const priceRaw     = document.getElementById('fieldPrice')?.value.trim();
-  const date         = document.getElementById('fieldDate')?.value;
-  const time         = document.getElementById('fieldTime')?.value;
-  const capacity     = document.getElementById('fieldCapacity')?.value;
-  const imageUrl     = document.getElementById('fieldImage')?.value.trim() || null;
-  const instructorId = document.getElementById('fieldInstructor')?.value;
-
-  // Validation
-  if (!type || !description || !date || !time || !capacity || !instructorId) {
-    errorEl.textContent = 'Veuillez remplir tous les champs obligatoires.';
-    return;
-  }
-  if (!priceRaw || isNaN(Number(priceRaw)) || Number(priceRaw) < 0) {
-    errorEl.textContent = 'Prix invalide.';
-    return;
+  for (const [key, el] of Object.entries(fields)) {
+    if (key !== 'image' && key !== 'title' && key !== 'coachNom' && key !== 'coachPrenom' && key !== 'coachEmail' && key !== 'price' && !el.value.trim()) { 
+      errorEl.textContent = 'Veuillez remplir Date, Capacité et Description.';
+      if (el.focus) el.focus();
+      return;
+    }
   }
 
-  const payload = {
-    type:         type.toUpperCase().replace(/\s+/g, '_'),
-    description,
-    price:        Number(priceRaw),
-    date,         // "YYYY-MM-DD"
-    time:         time + ':00',   // "HH:MM:SS"
-    capacity:     Number(capacity),
-    instructorId: Number(instructorId),
-    imageUrl:     imageUrl || null,
+  const capacity = parseInt(fields.capacity.value, 10);
+  const price = parseInt(fields.price.value, 10);
+  
+  const baseData = {
+    type: 'PILATES',
+    title: fields.title.value.trim(),
+    coachFirstName: fields.coachPrenom.value.trim(),
+    coachLastName: fields.coachNom.value.trim(),
+    coachEmail: fields.coachEmail.value.trim(),
+    description: fields.description.value.trim(),
+    dateTime: fields.dateTime.value,
+    capacity: capacity,
+    image: fields.image.value.trim(),
+    price: isNaN(price) ? 1500 : price,
+    instructorId: 1
   };
 
   try {
-    if (editingCourseId) {
-      await CoursesAPI.update(editingCourseId, payload);
-      showToast('Classe mise à jour ✓');
-      editingCourseId = null;
+      if (editingCourseId) {
+        await CoursesDB.update(editingCourseId, baseData);
+        editingCourseId = null;
+        document.querySelector('#addCourseSection .admin-card-title').textContent = 'Ajouter une Classe';
+        document.querySelector('#addCourseSection .admin-submit-btn').textContent = 'Publier la Classe →';
+        showToast('Classe mise à jour avec succès ✓');
+      } else {
+        await CoursesDB.add(baseData);
+        showToast('Classe ajoutée avec succès ✓');
+      }
+
+      renderAdminTable();
+      renderClientsTable();
       resetAdminForm();
-    } else {
-      await CoursesAPI.create(payload);
-      showToast('Classe créée ✓');
-      resetAdminForm();
-    }
-    await loadCourses();
-    await loadReservations();
-    refreshStats();
-  } catch (err) {
-    errorEl.textContent = err.message;
+      refreshStats();
+  } catch(e) {
+      errorEl.textContent = e.message || 'Erreur lors de l\'ajout.';
   }
 };
 
-/* ── DELETE COURSE ──────────────────────────────────── */
 const deleteCourse = async (id) => {
-  if (!confirm('Supprimer cette classe ?')) return;
+  if (!confirm('Supprimer cette classe ? Cette action est irréversible.')) return;
   try {
-    await CoursesAPI.remove(id);
-    showToast('Classe supprimée.');
-    await loadCourses();
-    await loadReservations();
-    refreshStats();
-  } catch (err) {
-    showToast('Erreur: ' + err.message);
+      await CoursesDB.remove(id);
+      renderAdminTable();
+      renderClientsTable();
+      refreshStats();
+      showToast('Classe supprimée.');
+  } catch(e) {
+      showToast('Erreur de suppression.');
   }
 };
 
-/* ── EDIT COURSE (pre-fill form) ─────────────────────── */
-const editCourse = (id) => {
-  const course = allCourses.find(c => c.id === id);
+const editCourse = async (id) => {
+  const courses = await CoursesDB.getAll();
+  const course = courses.find(c => c.id == id);
   if (!course) return;
+
   editingCourseId = id;
-
-  if (document.getElementById('fieldTitle'))
-    document.getElementById('fieldTitle').value = course.type || '';
-  if (document.getElementById('fieldDescription'))
-    document.getElementById('fieldDescription').value = course.description || '';
-  if (document.getElementById('fieldPrice'))
-    document.getElementById('fieldPrice').value = course.price ?? '';
-  if (document.getElementById('fieldDate'))
-    document.getElementById('fieldDate').value = course.date || '';
-  if (document.getElementById('fieldTime'))
-    document.getElementById('fieldTime').value = course.time ? course.time.slice(0,5) : '';
-  if (document.getElementById('fieldCapacity'))
-    document.getElementById('fieldCapacity').value = course.capacity || '';
-  if (document.getElementById('fieldImage'))
-    document.getElementById('fieldImage').value = course.imageUrl || '';
-  if (document.getElementById('fieldInstructor'))
-    document.getElementById('fieldInstructor').value = course.instructorId || '';
-
+  
+  document.getElementById('fieldTitle').value = course.title || course.description || '';
+  document.getElementById('fieldCoachNom').value = course.coachLastName || "";
+  document.getElementById('fieldCoachPrenom').value = course.coachFirstName || "";
+  document.getElementById('fieldCoachEmail').value = course.coachEmail || "";
+  document.getElementById('fieldDateTime').value = `${course.date}T${course.time}`;
+  document.getElementById('fieldCapacity').value = course.capacity;
+  document.getElementById('fieldImage').value = course.imageUrl || '';
+  document.getElementById('fieldDescription').value = course.description;
+  document.getElementById('fieldPrice').value = course.price || '';
+  
   document.querySelector('#addCourseSection .admin-card-title').textContent = 'Éditer une Classe';
-  document.querySelector('#addCourseSection .admin-submit-btn').textContent = 'Enregistrer →';
+  document.querySelector('#addCourseSection .admin-submit-btn').textContent = 'Enregistrer les Modifications →';
+  
   document.getElementById('addCourseSection').scrollIntoView({ behavior: 'smooth' });
 };
 
-/* ── RENDER COURSES TABLE ───────────────────────────── */
-const renderAdminTable = () => {
-  const tbody  = document.getElementById('adminTableBody');
-  const empty  = document.getElementById('emptyState');
+const renderAdminTable = async () => {
+  const tbody = document.getElementById('adminTableBody');
+  const empty = document.getElementById('emptyState');
   if (!tbody) return;
 
-  tbody.innerHTML = '';
-
-  if (allCourses.length === 0) {
+  tbody.innerHTML = '<tr><td colspan="6">Chargement...</td></tr>';
+  const courses = await CoursesDB.getAll();
+  
+  if (!courses || courses.length === 0) {
     empty.style.display = 'block';
+    tbody.innerHTML = '';
     return;
   }
+  
   empty.style.display = 'none';
+  tbody.innerHTML = '';
 
-  allCourses.forEach(c => {
-    const courseReservations = allReservations.filter(r => r.courseId === c.id);
-    const booked   = courseReservations.length;
-    const spots    = c.capacity - booked;
-    const isPast   = new Date(c.date + 'T' + c.time) < new Date();
-    const dateStr  = new Date(c.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timeStr  = c.time ? c.time.slice(0, 5) : '';
+  courses.forEach(c => {
+    const spots = CoursesDB.spotsLeft(c);
+    const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
+    const dateStr = dt.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    const timeStr = dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', hour12: false });
+    const isPast = dt < new Date();
 
     const tr = document.createElement('tr');
     tr.className = isPast ? 'row--past' : '';
     tr.innerHTML = `
       <td>
-        <div class="td-title">${c.type}</div>
+        <div class="td-title">${c.title || c.description || c.type}</div>
       </td>
       <td>
-        <div class="td-coach">${c.instructorId || '—'}</div>
+        <div class="td-coach">${c.coachFirstName || 'Instructeur'} ${c.coachLastName || ''}</div>
       </td>
       <td>
         <div>${dateStr}</div>
         <div class="td-time">${timeStr}</div>
       </td>
       <td>
-        <div class="td-price">${c.price ? Number(c.price).toLocaleString('fr-FR') + ' DA' : '—'}</div>
+        <div class="td-price">${c.price ? c.price.toLocaleString('fr-FR') + ' DA' : '—'}</div>
       </td>
       <td>
         <div class="spots-bar">
-          <div class="spots-fill" style="width:${c.capacity ? Math.round((booked/c.capacity)*100) : 0}%"></div>
+          <div class="spots-fill" style="width:${Math.round(((c.reservedSpots||0) / c.capacity) * 100)}%"></div>
         </div>
-        <div class="spots-text">${booked} / ${c.capacity} ${spots === 0 ? '<span class="badge-full">Complet</span>' : ''}</div>
+        <div class="spots-text">${c.reservedSpots||0} / ${c.capacity} ${spots <= 0 ? '<span class="badge-full">Complet</span>' : ''}</div>
       </td>
       <td>
-        <div style="display:flex;gap:8px">
-          <button class="admin-btn-edit" onclick="editCourse(${c.id})">
+        <div style="display: flex; gap: 8px;">
+          <button class="admin-btn-edit" onclick="editCourse('${c.id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
             Éditer
           </button>
-          <button class="admin-btn-delete" onclick="deleteCourse(${c.id})">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14H6L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
-              <path d="M9 6V4h6v2"/>
-            </svg>
+          <button class="admin-btn-delete" onclick="deleteCourse('${c.id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             Supprimer
           </button>
         </div>
@@ -267,35 +184,33 @@ const renderAdminTable = () => {
   });
 };
 
-/* ── RENDER CLIENTS TABLE ───────────────────────────── */
-const renderClientsTable = () => {
+const renderClientsTable = async () => {
   const tbody = document.getElementById('clientsTableBody');
   const empty = document.getElementById('clientsEmptyState');
   if (!tbody) return;
 
-  tbody.innerHTML = '';
+  tbody.innerHTML = '<tr><td colspan="5">Chargement...</td></tr>';
+  const clients = await ClientsDB.getAll();
 
-  if (allReservations.length === 0) {
+  if (!clients || clients.length === 0) {
     empty.style.display = 'flex';
+    tbody.innerHTML = '';
     return;
   }
+  
   empty.style.display = 'none';
+  tbody.innerHTML = '';
 
-  allReservations.forEach(r => {
+  clients.forEach(cl => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><div class="td-title">${r.firstName} ${r.lastName}</div></td>
-      <td><div class="td-email">${r.email}</div></td>
-      <td><div class="td-coach">${r.courseType || '—'}</div></td>
-      <td><div class="td-time">${r.courseDate || '—'}</div></td>
+      <td><div class="td-title">${cl.firstName} ${cl.lastName}</div></td>
+      <td><div class="td-email">${cl.email}</div></td>
+      <td><div class="td-coach">${cl.courseType || 'Classe #'+cl.courseId}</div></td>
+      <td><div class="td-time">${cl.bookedAt ? new Date(cl.bookedAt).toLocaleDateString('fr-FR') : '—'}</div></td>
       <td>
-        <button class="admin-btn-delete" onclick="deleteReservation(${r.id})">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14H6L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-            <path d="M9 6V4h6v2"/>
-          </svg>
+        <button class="admin-btn-delete" onclick="deleteClient('${cl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           Retirer
         </button>
       </td>
@@ -304,189 +219,96 @@ const renderClientsTable = () => {
   });
 };
 
-/* ── DELETE RESERVATION ─────────────────────────────── */
-const deleteReservation = async (id) => {
-  if (!confirm('Retirer ce client ?')) return;
+const addClient = async () => {
+  const nameEl   = document.getElementById('clientName');
+  const emailEl  = document.getElementById('clientEmail');
+  const courseEl = document.getElementById('clientCourse');
+  const errorEl  = document.getElementById('clientFormError');
+
+  errorEl.textContent = '';
+
+  if (!nameEl.value.trim() || !emailEl.value.trim() || !courseEl.value) {
+    errorEl.textContent = 'Veuillez remplir tous les champs.';
+    return;
+  }
+
+  const [firstName, ...lastNameParts] = nameEl.value.trim().split(' ');
+  const lastName = lastNameParts.join(' ') || '.';
+
   try {
-    await ReservationsAPI.remove(id);
-    showToast('Client retiré.');
-    await loadReservations();
-    refreshStats();
-  } catch (err) {
-    showToast('Erreur: ' + err.message);
+      await ClientsDB.add({
+        firstName,
+        lastName,
+        email: emailEl.value.trim(),
+        courseId: courseEl.value
+      });
+
+      nameEl.value = '';
+      emailEl.value = '';
+      courseEl.value = '';
+
+      renderAdminTable();
+      renderClientsTable();
+      refreshStats();
+      showToast('Client réservation ajoutée avec succès ✓');
+  } catch(e) {
+      errorEl.textContent = e.message || 'Erreur lors de la réservation';
   }
 };
 
-/* ── POPULATE COURSE SELECT (client form) ───────────── */
-const populateCourseSelect = () => {
+const deleteClient = async (id) => {
+  if (!confirm('Retirer cette réservation ? Cette action est irréversible.')) return;
+  try {
+      await ClientsDB.remove(id);
+      renderClientsTable();
+      renderAdminTable();
+      refreshStats();
+      showToast('Réservation retirée.');
+  } catch(e) {
+      showToast('Erreur de suppression.');
+  }
+};
+
+const populateCourseSelect = async () => {
   const sel = document.getElementById('clientCourse');
   if (!sel) return;
+  const courses = await CoursesDB.getAll();
   sel.innerHTML = '<option value="">— Choisir une classe —</option>' +
-    allCourses.map(c => {
-      const booked = allReservations.filter(r => r.courseId === c.id).length;
-      const spots  = c.capacity - booked;
-      return `<option value="${c.id}" ${spots === 0 ? 'disabled' : ''}>${c.type} — ${c.date} (${spots} places)</option>`;
-    }).join('');
+    courses.map(c => `<option value="${c.id}">${c.description ? c.description.split('.')[0] : c.type} (${CoursesDB.spotsLeft(c)} places)</option>`).join('');
 };
 
-/* ── RESET FORM ─────────────────────────────────────── */
 const resetAdminForm = () => {
-  ['fieldTitle','fieldDescription','fieldPrice','fieldDate',
-    'fieldTime','fieldCapacity','fieldImage','fieldInstructor'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+  ['fieldTitle','fieldCoachNom','fieldCoachPrenom','fieldCoachEmail','fieldDateTime','fieldCapacity','fieldImage','fieldDescription','fieldPrice']
+    .forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('adminFormError').textContent = '';
-  editingCourseId = null;
-  const titleEl = document.querySelector('#addCourseSection .admin-card-title');
-  const btnEl   = document.querySelector('#addCourseSection .admin-submit-btn');
-  if (titleEl) titleEl.textContent = 'Ajouter une Classe';
-  if (btnEl)   btnEl.textContent   = 'Publier la Classe →';
   setMinDateTime();
+  if (editingCourseId) {
+    editingCourseId = null;
+    document.querySelector('#addCourseSection .admin-card-title').textContent = 'Ajouter une Classe';
+    document.querySelector('#addCourseSection .admin-submit-btn').textContent = 'Publier la Classe →';
+  }
 };
 
-/* ── TOAST ──────────────────────────────────────────── */
 const showToast = (msg) => {
   const toast = document.getElementById('adminToast');
   toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3200);
 };
-/* ── TAB SWITCHING ──────────────────────────────────────────────────────────── */
-const switchTab = (tabName) => {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+
+const refreshStats = async () => {
+  const courses = await CoursesDB.getAll();
+  const clients = await ClientsDB.getAll();
+  const now     = new Date();
   
-  // Show selected tab
-  document.getElementById(tabName + '-tab').classList.add('active');
-  event.target.classList.add('active');
-  
-  // Load instructors when switching to instructors tab
-  if (tabName === 'instructors') {
-    renderInstructors();
-  }
-};
-
-/* ── ADD / UPDATE INSTRUCTOR ────────────────────────────────────────────────── */
-let editingInstructorId = null;
-
-const addInstructor = async () => {
-  const errorEl = document.getElementById('instructorFormError');
-  errorEl.textContent = '';
-
-  const firstName = document.getElementById('instFirstName')?.value.trim();
-  const lastName  = document.getElementById('instLastName')?.value.trim();
-  const email     = document.getElementById('instEmail')?.value.trim();
-
-  // Validation
-  if (!firstName || !lastName || !email) {
-    errorEl.textContent = 'Veuillez remplir tous les champs.';
-    return;
-  }
-
-  // Basic email validation
-  if (!email.includes('@')) {
-    errorEl.textContent = 'Email invalide.';
-    return;
-  }
-
-  try {
-    if (editingInstructorId) {
-      // Update existing instructor
-      await InstructorsAPI.update(editingInstructorId, firstName, lastName, email);
-      showToast('Instructeur mis à jour ✓');
-      editingInstructorId = null;
-    } else {
-      // Create new instructor
-      await InstructorsAPI.create(firstName, lastName, email);
-      showToast('Instructeur ajouté ✓');
-    }
-    resetInstructorForm();
-    await loadInstructors();
-  } catch (err) {
-    errorEl.textContent = err.message || 'Erreur lors de la sauvegarde';
-  }
-};
-
-/* ── RESET INSTRUCTOR FORM ──────────────────────────────────────────────────– */
-const resetInstructorForm = () => {
-  document.getElementById('instFirstName').value = '';
-  document.getElementById('instLastName').value = '';
-  document.getElementById('instEmail').value = '';
-  document.getElementById('instructorFormError').textContent = '';
-  document.querySelector('#instructors-tab .admin-card-title').textContent = 'Ajouter un Instructeur';
-  document.querySelector('#instructors-tab .admin-submit-btn').textContent = 'Ajouter Instructeur →';
-  editingInstructorId = null;
-};
-
-/* ── EDIT INSTRUCTOR ────────────────────────────────────────────────────────– */
-const editInstructor = (id) => {
-  const instructor = allInstructors.find(i => i.id === id);
-  if (!instructor) return;
-
-  editingInstructorId = id;
-  document.getElementById('instFirstName').value = instructor.firstName || '';
-  document.getElementById('instLastName').value = instructor.lastName || '';
-  document.getElementById('instEmail').value = instructor.email || '';
-
-  document.querySelector('#instructors-tab .admin-card-title').textContent = 'Modifier l\'Instructeur';
-  document.querySelector('#instructors-tab .admin-submit-btn').textContent = 'Enregistrer →';
-  document.querySelector('#instructors-tab .admin-card-body').scrollIntoView({ behavior: 'smooth' });
-};
-
-/* ── DELETE INSTRUCTOR ──────────────────────────────────────────────────────– */
-const deleteInstructor = async (id) => {
-  if (!confirm('Supprimer cet instructeur ?')) return;
-  try {
-    await InstructorsAPI.remove(id);
-    showToast('Instructeur supprimé.');
-    await loadInstructors();
-    await loadCourses(); // Reload courses as instructors may be referenced
-  } catch (err) {
-    showToast('Erreur: ' + err.message);
-  }
-};
-
-/* ── RENDER INSTRUCTORS LIST ────────────────────────────────────────────────– */
-const renderInstructors = () => {
-  const container = document.getElementById('instructorsContainer');
-  if (!container) return;
-
-  if (allInstructors.length === 0) {
-    container.innerHTML = '<p style="text-align:center; color:#999; padding:24px;">Aucun instructeur ajouté.</p>';
-    return;
-  }
-
-  let html = '<div style="display: grid; gap: 12px;">';
-  allInstructors.forEach(inst => {
-    const coursesCount = allCourses.filter(c => c.instructorId === inst.id).length;
-    html += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0;">
-        <div>
-          <div style="font-weight: 600; color: #2c4a5a;">${inst.firstName} ${inst.lastName}</div>
-          <div style="font-size: 13px; color: #999; margin-top: 4px;">${inst.email}</div>
-          <div style="font-size: 12px; color: #666; margin-top: 6px;">${coursesCount} classe(s)</div>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="admin-btn-edit" onclick="editInstructor(${inst.id})">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
-          <button class="admin-btn-delete" onclick="deleteInstructor(${inst.id})">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14H6L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
-              <path d="M9 6V4h6v2"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `;
+  const active  = courses.filter(c => {
+      const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
+      return dt > now;
   });
-  html += '</div>';
-  container.innerHTML = html;
+  
+  const booked  = courses.reduce((s, c) => s + (c.reservedSpots || 0), 0);
+
+  document.getElementById('statActive').textContent  = active ? active.length : 0;
+  document.getElementById('statBooked').textContent  = booked ? booked : 0;
+  document.getElementById('statClients').textContent = clients ? clients.length : 0;
 };

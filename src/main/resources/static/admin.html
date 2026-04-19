@@ -3,220 +3,303 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Souplesse — Admin Dashboard</title>
-  <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/admin.css">
+  <title>Manager Dashboard — Souplesse Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap"/>
-  <style>
-    .admin-container { display: flex; gap: 0; min-height: 100vh; }
-    .admin-sidebar { width: 260px; background: #2c4a5a; padding: 24px; color: white; overflow-y: auto; }
-    .admin-main { flex: 1; overflow-y: auto; padding: 40px; background: #fdfcfa; }
-    .admin-logo { font-size: 18px; font-weight: 600; margin-bottom: 32px; }
-    .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
-    .admin-stat-card { background: white; padding: 20px; border-radius: 6px; text-align: center; }
-    .admin-stat-num { font-size: 28px; font-weight: 600; color: #2c4a5a; }
-    .admin-stat-label { font-size: 12px; color: #999; margin-top: 4px; }
-    .admin-tabs { display: flex; gap: 12px; margin-bottom: 32px; border-bottom: 1px solid #e0e0e0; }
-    .admin-tab { padding: 12px 16px; cursor: pointer; border: none; background: none; font-size: 14px; color: #999; border-bottom: 3px solid transparent; transition: all 0.2s; }
-    .admin-tab.active { color: #2c4a5a; border-bottom-color: #2c4a5a; font-weight: 600; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .admin-card-body { background: white; padding: 24px; border-radius: 8px; }
-    .admin-card-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #2c4a5a; }
-    .admin-form-group { margin-bottom: 16px; }
-    .admin-form-group label { display: block; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
-    .admin-form-group input, .admin-form-group select, .admin-form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-    .admin-form-error { color: #d32f2f; font-size: 12px; }
-    .admin-submit-btn { width: 100%; padding: 12px; background: #6b9eaf; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-    .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    .admin-table th { text-align: left; padding: 12px; background: #f5f5f5; font-weight: 600; font-size: 12px; color: #666; border-bottom: 1px solid #ddd; }
-    .admin-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-    .admin-btn-edit, .admin-btn-delete { border: none; background: none; cursor: pointer; padding: 4px; border-radius: 2px; transition: all 0.2s; }
-    .admin-btn-edit { color: #2196f3; }
-    .admin-btn-delete { color: #f44336; }
-    .admin-btn-edit:hover { background: rgba(33, 150, 243, 0.1); }
-    .admin-btn-delete:hover { background: rgba(244, 67, 54, 0.1); }
-    #adminToast { display: none; position: fixed; bottom: 20px; left: 20px; background: #4caf50; color: white; padding: 12px 20px; border-radius: 4px; }
-    #adminToast.show { display: block; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  </style>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/admin.css"/>
 </head>
 <body>
 
-<div class="admin-container">
-
-  <!-- SIDEBAR -->
-  <div class="admin-sidebar">
-    <div class="admin-logo">SOUPLESSE ADMIN</div>
-    <div class="sidebar-footer"></div>
+<!-- ══ SIDEBAR ═══════════════════════════════════════ -->
+<aside class="admin-sidebar" id="adminSidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-name">SOUPLESSE</div>
+    <div class="sidebar-logo-sub">Pilates Studio · Alger</div>
+    <span class="sidebar-badge">Manager Portal</span>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <div class="admin-main">
-    <!-- STATS -->
-    <div class="admin-stats">
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="statActive">0</div>
-        <div class="admin-stat-label">CLASSES ACTIVES</div>
-      </div>
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="statBooked">0</div>
-        <div class="admin-stat-label">RÉSERVATIONS</div>
-      </div>
-      <div class="admin-stat-card">
-        <div class="admin-stat-num" id="statClients">0</div>
-        <div class="admin-stat-label">CLIENTS</div>
-      </div>
-    </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="sidebar-nav-item active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Tableau de bord
+    </a>
+    <a href="#addCourseSection" class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      Ajouter une Classe
+    </a>
+    <a href="#coursesSection" class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      Toutes les Classes
+    </a>
+    <a href="#clientsSection" class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      Clients & Réservations
+    </a>
+  </nav>
 
-    <!-- TABS -->
-    <div class="admin-tabs">
-      <button class="admin-tab active" onclick="switchTab('courses')">Classes</button>
-      <button class="admin-tab" onclick="switchTab('instructors')">Instructeurs</button>
-      <button class="admin-tab" onclick="switchTab('reservations')">Réservations</button>
-    </div>
+  <div class="sidebar-footer">
+    <a href="index.html" class="sidebar-back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Vue Client
+    </a>
+  </div>
+</aside>
 
-    <!-- TAB: COURSES -->
-    <div id="courses-tab" class="tab-content active">
-      <div class="admin-card-body" id="addCourseSection">
-        <h3 class="admin-card-title">Créer une Classe</h3>
+<!-- ══ MAIN ═══════════════════════════════════════════ -->
+<main class="admin-main">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div>
+      <p class="admin-header-eyebrow">Manager Portal</p>
+      <h1 class="admin-header-title">Tableau de Bord</h1>
+    </div>
+    <span class="admin-header-date" id="todayDate"></span>
+  </div>
+
+  <!-- Stats (2 cards only: Classes Actives + Réservations Totales) -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-card-label">Classes Actives</div>
+      <div class="stat-card-value" id="statActive">—</div>
+      <div class="stat-card-sub">à venir</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Réservations Totales</div>
+      <div class="stat-card-value" id="statBooked">—</div>
+      <div class="stat-card-sub">toutes classes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Clients Enregistrés</div>
+      <div class="stat-card-value" id="statClients">—</div>
+      <div class="stat-card-sub">dans le système</div>
+    </div>
+  </div>
+
+  <!-- Two-column layout: form left, table right -->
+  <div class="admin-layout">
+
+    <!-- ── ADD COURSE FORM ──────────────────────────── -->
+    <div class="admin-card" id="addCourseSection">
+      <div class="admin-card-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span class="admin-card-title">Ajouter une Classe</span>
+      </div>
+      <div class="admin-card-body">
 
         <div class="admin-form-group">
-            <label for="fieldTitle">Type de Classe (ex: YOGA, PILATES)</label>
-            <input type="text" id="fieldTitle" placeholder="ex. YOGA, PILATES, STRETCHING, CARDIO"/>
-        </div>
-
-        <div class="admin-form-group">
-            <label for="fieldInstructor">Instructeur</label>
-            <select id="fieldInstructor">
-              <option value="">— Choisir un instructeur —</option>
-            </select>
+          <label for="fieldTitle">Nom de la Classe</label>
+          <input type="text" id="fieldTitle" placeholder="ex. Reformer Flow Avancé"/>
         </div>
 
         <div class="form-row">
-            <div class="admin-form-group">
-              <label for="fieldDate">Date</label>
-              <input type="date" id="fieldDate"/>
-            </div>
-            <div class="admin-form-group">
-              <label for="fieldTime">Heure</label>
-              <input type="time" id="fieldTime"/>
-            </div>
+          <div class="admin-form-group">
+            <label for="fieldCoachNom">Nom du Coach</label>
+            <input type="text" id="fieldCoachNom" placeholder="Benali"/>
+          </div>
+          <div class="admin-form-group">
+            <label for="fieldCoachPrenom">Prénom du Coach</label>
+            <input type="text" id="fieldCoachPrenom" placeholder="Amira"/>
+          </div>
+          <div class="admin-form-group">
+            <label for="fieldCoachEmail">Email du Coach</label>
+            <input type="email" id="fieldCoachEmail" placeholder="amira@souplesse.dz"/>
+          </div>
         </div>
 
-        <div class="admin-form-group">
+        <div class="form-row">
+          <div class="admin-form-group">
+            <label for="fieldDateTime">Date &amp; Heure</label>
+            <input type="datetime-local" id="fieldDateTime"/>
+          </div>
+          <div class="admin-form-group">
             <label for="fieldCapacity">Capacité (Places)</label>
             <input type="number" id="fieldCapacity" placeholder="8" min="1" max="50"/>
+          </div>
         </div>
 
         <div class="admin-form-group">
-            <label for="fieldImage">Image (URL, optionnel)</label>
-            <input type="url" id="fieldImage" placeholder="https://images.unsplash.com/..."/>
+          <label for="fieldImage">Image (URL)</label>
+          <input type="url" id="fieldImage" placeholder="https://images.unsplash.com/photo-..."/>
         </div>
 
         <div class="admin-form-group">
-            <label for="fieldDescription">Description</label>
-            <textarea id="fieldDescription" placeholder="Décrivez la séance…" rows="4"></textarea>
+          <label for="fieldDescription">Description</label>
+          <textarea id="fieldDescription" placeholder="Décrivez le contenu de la séance, les objectifs…"></textarea>
         </div>
 
         <div class="admin-form-group">
-            <label for="fieldPrice">Prix (DA)</label>
-            <input type="number" id="fieldPrice" min="0" step="100"/>
+          <label for="fieldPrice">Prix (DA)</label>
+          <input type="number" id="fieldPrice"  min="100" step="100" />
+          <small style="display:block;color:#6d7a8a;font-size:12px;margin-top:2px;">Laissez vide pour générer un prix temporaire aléatoire (1000–3000 DA).</small>
         </div>
 
         <p class="admin-form-error" id="adminFormError"></p>
 
         <button class="admin-submit-btn" onclick="addCourse()">
-            Publier la Classe →
+          Publier la Classe →
         </button>
       </div>
+    </div>
 
-      <div style="margin-top: 32px;">
-        <h3 class="admin-card-title">Classes Publiées</h3>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Instructeur</th>
-              <th>Date & Heure</th>
-              <th>Prix</th>
-              <th>Places</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="adminTableBody">
-          </tbody>
-        </table>
-        <div id="emptyState" style="text-align: center; padding: 32px; color: #999; display: none;">
-          Aucune classe ajoutée.
+    <!-- ── COURSES TABLE ────────────────────────────── -->
+    <div class="admin-card" id="coursesSection">
+      <div class="admin-card-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.8">
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+        </svg>
+        <span class="admin-card-title">Toutes les Classes</span>
+      </div>
+      <div class="admin-card-body" style="padding:0">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <p>Aucune classe créée.<br/>Ajoutez votre première séance.</p>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Coach</th>
+                <th>Date &amp; Heure</th>
+                <th>Prix</th>
+                <th>Remplissage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB: INSTRUCTORS -->
-    <div id="instructors-tab" class="tab-content">
+  </div><!-- /.admin-layout -->
+
+  <!-- ══ CLIENTS SECTION ════════════════════════════════ -->
+  <div class="admin-layout" id="clientsSection" style="margin-top:32px">
+
+    <!-- ── ADD CLIENT FORM ──────────────────────────── -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.8">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span class="admin-card-title">Ajouter un Client</span>
+      </div>
       <div class="admin-card-body">
-        <h3 class="admin-card-title">Ajouter un Instructeur</h3>
-
         <div class="admin-form-group">
-            <label for="instFirstName">Prénom</label>
-            <input type="text" id="instFirstName" placeholder="ex. Amira"/>
+          <label for="clientName">Nom Complet</label>
+          <input type="text" id="clientName" placeholder="Sofia Amira"/>
         </div>
-
         <div class="admin-form-group">
-            <label for="instLastName">Nom</label>
-            <input type="text" id="instLastName" placeholder="ex. Bensalem"/>
+          <label for="clientEmail">Email</label>
+          <input type="email" id="clientEmail" placeholder="sofia@email.com"/>
         </div>
-
         <div class="admin-form-group">
-            <label for="instEmail">Email</label>
-            <input type="email" id="instEmail" placeholder="amira@souplesse.com"/>
+          <label for="clientCourse">Classe</label>
+          <select id="clientCourse" onclick="populateCourseSelect()">
+            <option value="">— Choisir une classe —</option>
+          </select>
         </div>
-
-        <p class="admin-form-error" id="instructorFormError"></p>
-
-        <button class="admin-submit-btn" onclick="addInstructor()">
-            Ajouter Instructeur →
+        <p class="admin-form-error" id="clientFormError"></p>
+        <button class="admin-submit-btn" onclick="populateCourseSelect(); addClient()">
+          Enregistrer le Client →
         </button>
-      </div>
-
-      <div style="margin-top: 32px;">
-        <h3 class="admin-card-title">Instructeurs</h3>
-        <div id="instructorsContainer"></div>
       </div>
     </div>
 
-    <!-- TAB: RESERVATIONS -->
-    <div id="reservations-tab" class="tab-content">
-      <div style="margin-top: 0;">
-        <h3 class="admin-card-title">Réservations</h3>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Email</th>
-              <th>Classe</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="clientsTableBody">
-          </tbody>
-        </table>
-        <div id="clientsEmptyState" style="text-align: center; padding: 32px; color: #999; display: none;">
-          Aucune réservation.
+    <!-- ── CLIENTS TABLE ────────────────────────────── -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.8">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="admin-card-title">Clients &amp; Réservations</span>
+      </div>
+      <div class="admin-card-body" style="padding:0">
+        <div class="empty-state" id="clientsEmptyState">
+          <div class="empty-state-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" stroke-width="1.5">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </div>
+          <p>Aucun client enregistré.</p>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Classe</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
   </div>
-</div>
 
+</main>
+
+<!-- Toast -->
 <div id="adminToast"></div>
 
-<script src="./js/api.js"></script>
-<script src="./js/admin.js"></script>
+<!-- Scripts -->
+<script src="js/api.js"></script>
+<script src="js/courses.js"></script>
+<script src="js/email.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  // Today's date in header
+  document.getElementById('todayDate').textContent =
+    new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
+  // Stats
+  const refreshStats = () => {
+    const courses = CoursesDB.getAll();
+    const clients = ClientsDB.getAll();
+    const now     = new Date();
+    const active  = courses.filter(c => new Date(c.dateTime) > now);
+    const booked  = courses.reduce((s, c) => s + c.booked, 0);
+
+    document.getElementById('statActive').textContent  = active.length;
+    document.getElementById('statBooked').textContent  = booked;
+    document.getElementById('statClients').textContent = clients.length;
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshStats();
+    populateCourseSelect();
+  });
+
+  // Refresh stats after every course/client render
+  const _origCourse = renderAdminTable;
+  const _origClient = renderClientsTable;
+</script>
 </body>
 </html>

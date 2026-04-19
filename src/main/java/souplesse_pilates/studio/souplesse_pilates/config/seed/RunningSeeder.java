@@ -37,59 +37,83 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
         createAdminIfNotExists(userRepository, passwordEncoder);
 
         // 2. Instructors
-        User instructor1 = createInstructorIfNotExists("sara@fitbook.com", "Sara", "Smith");
-        User instructor2 = createInstructorIfNotExists("marc@fitbook.com", "Marc", "Dupont");
+        User instructor1 = createInstructorIfNotExists("amira@souplesse.dz", "Amira", "Benali");
+        User instructor2 = createInstructorIfNotExists("yasmine@souplesse.dz", "Yasmine", "Hadj");
+        User instructor3 = createInstructorIfNotExists("lina@souplesse.dz", "Lina", "Mansouri");
 
         // 3. Courses (Upcoming)
+        courseRepository.deleteAll();
         if (courseRepository.count() == 0) {
             log.info("Creating initial courses for RUNNING profile...");
             
             courseRepository.save(Course.builder()
                 .type(CourseType.PILATES)
-                .description("Pilates Reformer Débutants - Focus sur la force du tronc et l'alignement.")
+                .title("Reformer Foundations")
+                .description("Découvrez les bases du Reformer Pilates dans un cadre bienveillant. Idéal pour commencer votre voyage.")
                 .price(new BigDecimal("2500"))
-                .date(LocalDate.now().plusDays(1))
+                .date(LocalDate.now().plusDays(2))
                 .time(LocalTime.of(10, 0))
                 .capacity(8)
-                .reservedSpots(0)
+                .reservedSpots(2)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor1)
-                .build());
-
-            courseRepository.save(Course.builder()
-                .type(CourseType.YOGA)
-                .description("Vinyasa Flow - Séquence dynamique liant le mouvement à la respiration.")
-                .price(new BigDecimal("2000"))
-                .date(LocalDate.now().plusDays(2))
-                .time(LocalTime.of(18, 30))
-                .capacity(15)
-                .reservedSpots(0)
-                .status(CourseStatus.AVAILABLE)
-                .instructor(instructor2)
+                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80").toURL())
                 .build());
 
             courseRepository.save(Course.builder()
                 .type(CourseType.PILATES)
-                .description("Pilates Matwork - Exercices classiques sur tapis.")
-                .price(new BigDecimal("1500"))
+                .title("Core & Flow")
+                .description("Un enchaînement fluide axé sur le centre du corps. Respirez, connectez-vous et progressez.")
+                .price(new BigDecimal("2000"))
                 .date(LocalDate.now().plusDays(3))
-                .time(LocalTime.of(12, 0))
-                .capacity(12)
-                .reservedSpots(0)
+                .time(LocalTime.of(18, 30))
+                .capacity(6)
+                .reservedSpots(1)
                 .status(CourseStatus.AVAILABLE)
-                .instructor(instructor1)
+                .instructor(instructor2)
+                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1540206395-68808572332f?w=800&q=80").toURL())
                 .build());
 
             courseRepository.save(Course.builder()
                 .type(CourseType.STRETCHING)
-                .description("Étirements Profonds - Relaxation et souplesse.")
+                .title("Stretch & Restore")
+                .description("Séance douce de récupération active. Étirements profonds et relâchement musculaire complet.")
                 .price(new BigDecimal("1500"))
                 .date(LocalDate.now().plusDays(4))
-                .time(LocalTime.of(9, 0))
+                .time(LocalTime.of(12, 0))
                 .capacity(10)
+                .reservedSpots(5)
+                .status(CourseStatus.AVAILABLE)
+                .instructor(instructor3)
+                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?w=800&q=80").toURL())
+                .build());
+
+            courseRepository.save(Course.builder()
+                .type(CourseType.PILATES)
+                .title("Power Reformer")
+                .description("Challenge cardio-musculaire intensif. Poussez vos limites sur le Reformer.")
+                .price(new BigDecimal("3000"))
+                .date(LocalDate.now().plusDays(5))
+                .time(LocalTime.of(19, 0))
+                .capacity(5)
+                .reservedSpots(4)
+                .status(CourseStatus.AVAILABLE)
+                .instructor(instructor1)
+                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80").toURL())
+                .build());
+                
+            courseRepository.save(Course.builder()
+                .type(CourseType.PILATES)
+                .title("Barre & Balance")
+                .description("Associez la danse classique et le Pilates pour sculpter et tonifier en douceur.")
+                .price(new BigDecimal("2500"))
+                .date(LocalDate.now().plusDays(6))
+                .time(LocalTime.of(17, 30))
+                .capacity(8)
                 .reservedSpots(0)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor2)
+                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1601925228008-e9acc5c9adce?w=800&q=80").toURL())
                 .build());
         }
 

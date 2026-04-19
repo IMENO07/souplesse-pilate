@@ -26,6 +26,18 @@ public class Course {
     @Enumerated(EnumType.STRING)
     private CourseType type;
 
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "coach_first_name")
+    private String coachFirstName;
+
+    @Column(name = "coach_last_name")
+    private String coachLastName;
+
+    @Column(name = "coach_email")
+    private String coachEmail;
+
     @Column(name = "description", nullable = false)
     private String description;
 

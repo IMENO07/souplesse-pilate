@@ -151,7 +151,7 @@
   <script src="./js/api.js"></script>
   <script>
     // Redirect if already logged in
-    if (Auth.isLoggedIn()) {
+    if (localStorage.getItem('souplesse_jwt')) {
       window.location.href = 'admin.html';
     }
 
@@ -177,12 +177,15 @@
       btn.textContent = 'Connexion…';
 
       try {
-        await AuthAPI.login(email, password);
-        window.location.href = 'admin.html';
+        const response = await api.post('/auth/login', { email, password });
+        if (response && response.token) {
+            localStorage.setItem('souplesse_jwt', response.token);
+            window.location.href = 'admin.html';
+        } else {
+            throw new Error("No token");
+        }
       } catch (err) {
-        errorEl.textContent = err.message.includes('401') || err.message.toLowerCase().includes('invalid')
-          ? 'Email ou mot de passe incorrect.'
-          : 'Erreur de connexion. Vérifiez que le serveur est démarré.';
+        errorEl.textContent = 'Email ou mot de passe incorrect.';
         btn.disabled = false;
         btn.textContent = 'Connexion →';
       }
