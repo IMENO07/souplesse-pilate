@@ -1,148 +1,180 @@
-> [!WARNING]
-> **ARCHIVED / HISTORICAL DOCUMENT**
-> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture where the frontend loads natively from `src/main/resources/static/`. Please refer to the root `README.md` for current, accurate operational instructions.
-
 # Comprehensive Frontend Architecture Manual
 
 *Souplesse Pilates Studio User Interface*
 
-This document serves as the absolute source of truth for the Souplesse Pilates frontend. It explains the stateless Vanilla architecture, the JavaScript API bridge, the DOM manipulation strategy, and explicitly maps the danger zones when altering UI elements.
+This document is the source of truth for the Souplesse Pilates frontend. It explains the Vanilla architecture, the JavaScript API bridge, the DOM manipulation strategy, and explicitly maps the critical coupling points.
 
 ---
 
 ## 1. Architectural Philosophy
 
-We have elected to use **Vanilla HTML5, CSS3, and ES6 JavaScript**. 
-Why? Because the scope of the application (Browsing courses, booking an appointment, rendering a basic dashboard) does not necessitate forcing a Virtual DOM payload (React) onto the end user. This guarantees perfect SEO, blazing fast parsing times, and infinite longevity without "npm audit" framework death.
+The frontend uses **Vanilla HTML5, CSS3, and ES6 JavaScript** — no frameworks, no bundlers, no build step. The UI is served directly by Spring Boot from `src/main/resources/static/`. All API calls use relative paths (e.g., `fetch('/courses')`), meaning **zero CORS configuration is needed** for production.
 
 ---
 
-## 2. Directory Structure & Relationships
+## 2. Directory Structure & File Map
+
+```
+src/main/resources/static/
+├── index.html          # Public landing page + booking flow
+├── login.html          # Admin authentication page
+├── admin.html          # Secure admin dashboard
+├── pilimg.jpeg         # Studio background image
+├── css/
+│   ├── style.css       # Global variables, layout, typography
+│   ├── classes.css     # Course cards, grids, booking wizard
+│   └── admin.css       # Dashboard layout, forms, tables
+└── js/
+    ├── api.js          # Central API client (fetch wrapper + JWT)
+    ├── courses.js      # CoursesDB & ClientsDB async API bridges
+    ├── main.js         # Homepage logic: hero, booking wizard, testimonials, gallery
+    ├── booking.js      # (Legacy) booking-specific logic
+    ├── admin.js        # Dashboard CRUD: courses, reservations, settings
+    ├── navigation.js   # Navbar scroll effects, mobile menu
+    └── email.js        # Contact form email handling
+```
 
 ```mermaid
 graph TD
-    subgraph Root
-        Index["index.html - Public Landing/Booking"]
-        Login["login.html - Authentication"]
-        Admin["admin.html - Secure Manager Dash"]
+    subgraph HTML Pages
+        Index["index.html"]
+        Login["login.html"]
+        Admin["admin.html"]
     end
     
-    subgraph Assets
-        CSS["css/"]
-        JS["js/"]
-        IMG["img/"]
+    subgraph Shared JS
+        API["api.js — fetch wrapper + JWT"]
+        Courses["courses.js — CoursesDB & ClientsDB"]
     end
     
-    subgraph CSS_Modules
-        MainCSS["style.css - Global Variables & Layout"]
-        ClassCSS["classes.css - Cards & Grids"]
-        AdminCSS["admin.css - Dashboard Layout"]
+    subgraph Page-Specific JS
+        MainJS["main.js — Homepage logic"]
+        AdminJS["admin.js — Dashboard CRUD"]
+        NavJS["navigation.js — Navbar effects"]
     end
     
-    subgraph JS_Modules
-        BookJS["booking.js - Public Fetching & Forms"]
-        AdminJS["admin.js - Auth, Secure Fetch, CRUD"]
-        AuthJS["login handling inline / shared logic"]
+    subgraph CSS Modules
+        StyleCSS["style.css — Global"]
+        ClassesCSS["classes.css — Cards & Grids"]
+        AdminCSS["admin.css — Dashboard"]
     end
 
-    Index --> MainCSS
-    Index --> ClassCSS
-    Index --> BookJS
+    Index --> API
+    Index --> Courses
+    Index --> MainJS
+    Index --> NavJS
+    Index --> StyleCSS
+    Index --> ClassesCSS
     
-    Admin --> MainCSS
-    Admin --> AdminCSS
+    Admin --> API
+    Admin --> Courses
     Admin --> AdminJS
+    Admin --> StyleCSS
+    Admin --> AdminCSS
     
-    Login --> MainCSS
-    
-    CSS --> MainCSS
-    CSS --> ClassCSS
-    CSS --> AdminCSS
-    
-    JS --> BookJS
-    JS --> AdminJS
+    Login --> API
+    Login --> StyleCSS
 ```
 
 ---
 
-## 3. The Backend Bridge (Fetch Interface)
+## 3. The API Client (`js/api.js`)
 
-The exact flow of how the frontend communicates with the backend is entirely contained within the native `fetch()` API.
+The central module handling **all** communication between the frontend and the Spring Boot backend.
 
-### Public Lifecycle (`index.html` <-> `booking.js`)
-When a user visits the homepage, immediately the following sequence triggers:
-1. `document.addEventListener('DOMContentLoaded')` fires.
-2. `fetch('http://localhost:8080/courses')` is executed via a `GET` request.
-3. The JSON array is parsed.
-4. An HTML template string is generated for each course object.
-5. The DOM element `document.getElementById('courses-grid').innerHTML` is updated.
+### Key Features
+- **Relative Paths**: `API_BASE = ''` — all requests go to the same origin (e.g., `/courses`, `/admin/courses`).
+- **Automatic JWT Injection**: Reads `souplesse_jwt` from `localStorage` and adds `Authorization: Bearer <token>` to every request except `/auth/login`.
+- **Global 401 Handling**: When a `401 Unauthorized` is received, the client automatically clears the stored token and redirects to `/login.html`.
+- **204 No Content**: Properly handles delete responses with no body.
 
-### Private Lifecycle (`admin.html` <-> `admin.js`)
-Security is managed strictly via `localStorage` on the client side.
-
-```mermaid
-sequenceDiagram
-    participant Manager
-    participant Browser
-    participant LocalStorage
-    participant Backend
-
-    %% Authentication
-    Manager->>Browser: Enters email/pass on login.html
-    Browser->>Backend: POST /auth/login {credentials}
-    Backend-->>Browser: 200 OK { token: "eyJhbG..." }
-    Browser->>LocalStorage: setItem('jwtToken', token)
-    Browser->>Browser: window.location.href = 'admin.html'
-
-    %% Protected Call
-    Manager->>Browser: Clicks "Delete Course"
-    Browser->>LocalStorage: getItem('jwtToken')
-    LocalStorage-->>Browser: "eyJhbG..."
-    Browser->>Backend: DELETE /admin/courses/5 \n Headers: { Authorization: "Bearer eyJhbG..." }
-    
-    alt Token Valid
-        Backend-->>Browser: 200 OK (Deleted)
-        Browser->>Browser: Remove element from DOM natively
-    else Token Expired
-        Backend-->>Browser: 401 Unauthorized
-        Browser->>LocalStorage: removeItem('jwtToken')
-        Browser->>Browser: window.location.href = 'login.html'
-    end
-```
+### Methods
+| Method | Signature | Description |
+| :--- | :--- | :--- |
+| `get` | `api.get(endpoint)` | GET request |
+| `post` | `api.post(endpoint, body)` | POST with JSON body |
+| `put` | `api.put(endpoint, body)` | PUT with JSON body |
+| `delete` | `api.delete(endpoint)` | DELETE request |
 
 ---
 
-## 4. Editing Guidelines: The Impact Matrix
+## 4. Data Modules (`js/courses.js`)
 
-Because we rely on Vanilla JS, our JavaScript is heavily coupled to element `#ID`s and `.class` names in the structural HTML. 
+### `CoursesDB` — Course API Bridge
 
-> **⚠️ DANGER: Breaking The DOM bindings**
-> Altering the HTML classes or structural wrappers carelessly will instantly break the application silently (JavaScript will throw null-pointer exceptions in the console).
+| Method | API Call | Description |
+| :--- | :--- | :--- |
+| `getAll()` | `GET /courses` (public) or `GET /admin/courses` (admin) | Auto-detects page context |
+| `add(data)` | `POST /admin/courses` | Creates a new course |
+| `update(id, data)` | `PUT /admin/courses/{id}` | Updates an existing course |
+| `remove(id)` | `DELETE /admin/courses/{id}` | Deletes a course |
+| `spotsLeft(course)` | — (computed) | Returns `capacity - reservedSpots` |
+
+**Field Mapping**: The response from the API is transformed to add computed properties:
+- `coach` = `coachFirstName + coachLastName`
+- `dateTime` = `date + 'T' + time`
+- `image` = `imageUrl`
+
+### `ClientsDB` — Reservation API Bridge
+
+| Method | API Call | Description |
+| :--- | :--- | :--- |
+| `getAll()` | `GET /admin/reservations` | Lists all reservations |
+| `add(client)` | `POST /reservations` | Creates a new reservation |
+| `remove(id)` | `DELETE /admin/reservations/{id}` | Deletes a reservation |
+
+---
+
+## 5. Page Logic
+
+### Homepage (`index.html` ↔ `main.js`)
+1. On `DOMContentLoaded`, `CoursesDB.getAll()` is called asynchronously.
+2. Course cards are rendered into `#coursesGrid` via template literals.
+3. The **3-step booking wizard** handles: Date/class selection → Details form (Nom, Prénom, Email) → Confirmation via `POST /reservations`.
+4. Testimonials, gallery, and FAQ sections are rendered from local data arrays.
+
+### Admin Dashboard (`admin.html` ↔ `admin.js`)
+1. On load, checks `localStorage` for `souplesse_jwt`. Redirects to `/login.html` if missing.
+2. Fetches all courses and reservations via `CoursesDB.getAll()` and `ClientsDB.getAll()`.
+3. Provides CRUD operations: create/edit/delete courses, view/delete reservations.
+4. Dashboard summary cards show total courses, total reservations, and capacity metrics.
+
+### Login (`login.html`)
+1. Submits credentials to `POST /auth/login`.
+2. On success, stores the JWT token in `localStorage` as `souplesse_jwt`.
+3. Redirects to `/admin.html`.
+
+---
+
+## 6. Editing Guidelines: The Impact Matrix
+
+> **⚠️ DANGER: Breaking The DOM Bindings**
+> The JavaScript is heavily coupled to element `#ID`s and `.class` names. Altering HTML IDs or structural wrappers carelessly will instantly break the application silently.
 
 ### Impact 1: Changing Element IDs
-*   **What you do**: Changing `<div id="courses-grid">` to `<div id="upcoming-classes">` in `index.html`.
-*   **What breaks**: `booking.js` calls `document.getElementById('courses-grid')`. It will return `null`. The homepage will stay blank forever. 
-*   **The Fix**: You must globally search and replace the ID string in the associated `.js` file immediately.
+- **Example**: Changing `<div id="coursesGrid">` to `<div id="class-list">`.
+- **What breaks**: `main.js` calls `document.getElementById('coursesGrid')` → returns `null` → homepage stays blank.
+- **Fix**: Globally search and replace the ID string in the corresponding `.js` file.
 
-### Impact 2: Changing Class Structure (CSS Grid/Flexbox)
-*   **What you do**: Altering `.class-card` from `display: flex` to `display: block` in `classes.css`.
-*   **What breaks**: Visual alignment. But technically, because `booking.js` renders the inner HTML of the card dynamically as a massive template string, if you alter the parent CSS, you MUST update the template string inside `booking.js` to match the new nested HTML structure you intend to style.
+### Impact 2: Changing CSS Grid/Flex Structures
+- **Example**: Altering `.class-card` from `display: flex` to `display: block`.
+- **What breaks**: Visual alignment. Because `main.js` renders card inner HTML as template strings, the parent CSS must match the nested HTML structure.
 
 ### Impact 3: Expanding the API Payload
-*   **What you do**: The backend adds a `durationInMinutes` field to the Course JSON.
-*   **What breaks**: Nothing actively breaks. Vanilla JS loosely parses JSON. However, to display this to the user, you must manually edit the template literal mapping inside `booking.js`:
-    ```javascript
-    // Add this to the template string
-    `<span class="duration">${course.durationInMinutes} mins</span>`
-    ```
+- **Example**: Backend adds `durationInMinutes` to the Course JSON.
+- **What breaks**: Nothing actively breaks. But to display it, you must edit the template literal in `main.js`:
+  ```javascript
+  `<span class="duration">${course.durationInMinutes} mins</span>`
+  ```
 
 ---
 
-## 5. Adding New Features (Checklist)
+## 7. Adding New Features (Checklist)
 
-If you need to add a brand new page, for example, `instructors.html` (public view):
-1.  **Create** `instructors.html` utilizing the global `<nav>` from `index.html`.
-2.  **Ensure** it links `css/style.css` for base resets.
-3.  **Create** `js/instructors.js`.
-4.  **Backend Call**: Write a `fetch('http://localhost:8080/api/public/instructors')` block inside your DOMContentLoaded handler.
-5.  **Render**: Target an empty predefined `<div id="instructor-roster">` and inject the parsed HTML strings.
+To add a new page (e.g., `instructors.html`):
+1. **Create** `instructors.html` using the global `<nav>` from `index.html`.
+2. **Link** `css/style.css` for base resets and `js/api.js` for API access.
+3. **Create** `js/instructors.js`.
+4. **Backend Call**: Write `api.get('/instructors')` inside your `DOMContentLoaded` handler.
+5. **Render**: Target a predefined `<div id="instructor-roster">` and inject parsed HTML strings.
+6. **Security**: Ensure the new endpoint is added to `SecurityConfig.java` with the correct access level (`permitAll()` or `.hasRole("ADMIN")`).

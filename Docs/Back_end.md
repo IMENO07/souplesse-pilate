@@ -1,54 +1,63 @@
-> [!WARNING]
-> **ARCHIVED / HISTORICAL DOCUMENT**
-> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture. Please refer to the root `README.md` for current, accurate operational instructions.
-
 # Comprehensive Backend Architecture Manual
 
 *Souplesse Pilates Studio Backend Service*
 
-This document serves as the exhaustive reference for the Spring Boot backend architecture. It dictates how data is structured, heavily illustrating the relationships, and explicitly outlines the critical impact points—what happens when you edit one piece of the backend, and what other pieces are strictly tied to it.
+This document serves as the exhaustive reference for the Spring Boot backend architecture. It dictates how data is structured, illustrates the relationships, and explicitly outlines the critical impact points — what happens when you edit one piece of the backend, and what other pieces are strictly tied to it.
 
 ---
 
 ## 1. Core Technological Foundation
 
-The backend strictly adhering to the `souplesse_pilates` package structure relies on the following hardened stack:
-*   **Java 21**: Leveraging modern capabilities like records and improved switch statements where applicable.
-*   **Spring Boot 4.0.5**: The underlying container managing dependency injection, routing, security, and tomcat hosting.
-*   **Spring Data JPA (Hibernate)**: The ORM layer abstracting raw SQL queries into repository interfaces.
-*   **H2 & PostgreSQL**: Dual database configuration via profiles. `dev` uses H2 in-memory. Standard execution utilizes the PostgreSQL docker container mapped safely to port `5433` to prevent host collisions.
-*   **JJWT (0.12.6)**: Dedicated library managing stateless JSON Web Token creation, signing (HMAC SHA-256), and authorization parsing.
-*   **MapStruct**: Interface-based automated bean mappers translating internal `Entities` to external `DTOs`.
+The backend strictly adheres to the `souplesse_pilates.studio.souplesse_pilates` package structure and relies on the following stack:
+
+| Technology | Version | Role |
+| :--- | :--- | :--- |
+| Java | 21 | Core runtime language |
+| Spring Boot | 4.0.5 | DI, routing, security, embedded Tomcat |
+| Spring Data JPA (Hibernate) | Latest via Boot | ORM layer |
+| PostgreSQL | 15 (Docker) | Production database |
+| JJWT | 0.12.6 | Stateless JWT creation, signing (HMAC SHA-256), and parsing |
+| MapStruct | Latest | Automated entity ↔ DTO bean mapping |
+| Lombok | Latest | Boilerplate reduction (`@Getter`, `@Builder`, etc.) |
 
 ---
 
-## 2. System Architecture Diagram
+## 2. Monolithic Architecture
+
+The application is a **self-contained monolith**. The frontend (HTML/CSS/JS) is served directly from `src/main/resources/static/` by Spring Boot's embedded Tomcat. There is **no separate frontend server**.
 
 ```mermaid
 graph TD
-    %% Define styles
     classDef external fill:#f9f,stroke:#333,stroke-width:2px;
     classDef controller fill:#bbf,stroke:#333,stroke-width:2px;
     classDef service fill:#bfb,stroke:#333,stroke-width:2px;
     classDef repository fill:#fbf,stroke:#333,stroke-width:2px;
     classDef db fill:#ff9,stroke:#333,stroke-width:2px;
     
-    Client(("Frontend/Client")):::external
+    Client(("Browser Client")):::external
     
     subgraph Spring Security Layer
         JWT["JwtFilter"]
         SecurityChain["SecurityFilterChain"]
     end
+
+    subgraph Static Resources
+        IndexHTML["index.html"]
+        LoginHTML["login.html"]
+        AdminHTML["admin.html"]
+        JSAPI["js/api.js"]
+    end
     
     subgraph Presentation Layer 
-        AuthCtrl["AuthController"]:::controller
+        AuthCtrl["AdminAuthController"]:::controller
         CourseCtrl["CourseController (Public)"]:::controller
-        AdminCourseCtrl["AdminCourseController"]:::controller
-        ResvrCtrl["ReservationController"]:::controller
+        AdminCourseCtrl["CourseAdminController"]:::controller
+        ResvrCtrl["ReservationController (Public)"]:::controller
+        ResvrAdminCtrl["ReservationAdminController"]:::controller
     end
     
     subgraph Business Logic Layer
-        AuthSvc["AuthService"]:::service
+        UserSvc["UserService"]:::service
         JwtSvc["JwtService"]:::service
         CourseSvc["CourseService"]:::service
         ResvrSvc["ReservationService"]:::service
@@ -61,25 +70,29 @@ graph TD
         ResvrRepo["ReservationRepository"]:::repository
     end
     
-    Database[("PostgreSQL / H2")]:::db
+    Database[("PostgreSQL")]:::db
 
-    %% Connections
     Client --> SecurityChain
     SecurityChain --> JWT
+    JWT --> |Static| IndexHTML
+    JWT --> |Static| LoginHTML
+    JWT --> |Static| AdminHTML
     JWT --> |Public| CourseCtrl
     JWT --> |Public| ResvrCtrl
     JWT --> |Public| AuthCtrl
     JWT --> |Protected Admin| AdminCourseCtrl
+    JWT --> |Protected Admin| ResvrAdminCtrl
     
-    AuthCtrl --> AuthSvc
-    AuthSvc --> JwtSvc
-    AuthSvc --> UserRepo
+    AuthCtrl --> UserSvc
+    UserSvc --> JwtSvc
+    UserSvc --> UserRepo
     
     CourseCtrl --> CourseSvc
     AdminCourseCtrl --> CourseSvc
     CourseSvc --> CourseRepo
     
     ResvrCtrl --> ResvrSvc
+    ResvrAdminCtrl --> ResvrSvc
     ResvrSvc --> CourseRepo
     ResvrSvc --> ResvrRepo
     ResvrSvc -.-> |Event Trigger| EmailSvc
@@ -91,9 +104,32 @@ graph TD
 
 ---
 
-## 3. Data Dictionary & Entity Relation
+## 3. API Route Map
 
-The core schema revolves around three fundamental tables. It is crucial to understand these relations because deleting a "User" who is an instructor could orphan a "Course", which in turn orphans a "Reservation".
+### Public Routes (No JWT Required)
+
+| Method | Endpoint | Controller | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/courses` | `CourseController` | List all available (non-full) courses |
+| `POST` | `/reservations` | `ReservationController` | Book a spot in a course |
+| `POST` | `/auth/login` | `AdminAuthController` | Authenticate admin, returns JWT token |
+
+### Protected Admin Routes (JWT + `ROLE_ADMIN` Required)
+
+| Method | Endpoint | Controller | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/courses` | `CourseAdminController` | List ALL courses (including full) |
+| `POST` | `/admin/courses` | `CourseAdminController` | Create a new course |
+| `PUT` | `/admin/courses/{id}` | `CourseAdminController` | Update an existing course |
+| `DELETE` | `/admin/courses/{id}` | `CourseAdminController` | Delete a course |
+| `GET` | `/admin/reservations` | `ReservationAdminController` | List all reservations |
+| `GET` | `/admin/reservations/course/{courseId}` | `ReservationAdminController` | List reservations for a specific course |
+| `PUT` | `/admin/reservations/{id}` | `ReservationAdminController` | Update a reservation |
+| `DELETE` | `/admin/reservations/{id}` | `ReservationAdminController` | Delete a reservation |
+
+---
+
+## 4. Data Dictionary & Entity Relations
 
 ```mermaid
 erDiagram
@@ -102,24 +138,31 @@ erDiagram
     
     USERS {
         Long id PK
-        String email
-        String password
         String firstName
         String lastName
-        String role
+        String email UK
+        String password
+        UserRole role "ADMIN | INSTRUCTOR"
     }
     
     COURSES {
         Long id PK
-        String type
+        CourseType type "PILATES | YOGA | STRETCHING | CARDIO"
+        String title
+        String coachFirstName
+        String coachLastName
+        String coachEmail
         String description
         BigDecimal price
         LocalDate date
         LocalTime time
         Integer capacity
-        Integer reservedSpots
-        String status
+        Integer reservedSpots "default 0"
+        URL imageUrl
+        CourseStatus status "AVAILABLE | FULL"
         Long instructor_id FK
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
     }
     
     RESERVATIONS {
@@ -132,20 +175,14 @@ erDiagram
     }
 ```
 
-### Critical Editing Rules for Entities
-> **⚠️ DANGER: Cascading Impacts**
-> If you edit an Entity (e.g., adding a `phoneNumber` to `Reservation`), you MUST update the following chain of files to prevent the system from crashing or ignoring the data:
-> 1. `Reservation.java` (The Entity)
-> 2. `ReservationRequestDTO.java` (The payload the controller expects)
-> 3. `ReservationResponseDTO.java` (The payload returned)
-> 4. `ReservationMapper.java` (MapStruct will fail to compile if fields are mismatched)
-> 5. The Frontend `booking.js` payload sent in the `fetch()` call.
+### Key Business Rules
+- **Unique Constraint**: A `(email, course_id)` unique constraint on `reservations` prevents duplicate bookings at the database level.
+- **Capacity Auto-Status**: `Course.updateStatus()` automatically sets `status` to `FULL` when `reservedSpots >= capacity`, and back to `AVAILABLE` otherwise.
+- **Timestamps**: `createdAt` is set via `@PrePersist`, `updatedAt` via `@PreUpdate`.
 
 ---
 
-## 4. The Booking Lifecycle Engine
-
-The most critical and fragile piece of backend logic is the Reservation Service. It explicitly handles race-conditions.
+## 5. The Booking Lifecycle Engine
 
 ```mermaid
 sequenceDiagram
@@ -155,12 +192,11 @@ sequenceDiagram
     participant Repo as Course/Resvr Repo
     participant DB as Database
     
-    Client->>Ctrl: POST /reservations {courseId, email}
+    Client->>Ctrl: POST /reservations {courseId, firstName, lastName, email}
     Ctrl->>Svc: createReservation(dto)
     Svc->>Repo: findCourseById(id)
     Repo-->>Svc: Course Object
     
-    %% Capacity Check Logic
     alt Capacity <= Reserved Spots
         Svc-->>Ctrl: throw IllegalStateException("Class is full")
         Ctrl-->>Client: 400 Bad Request
@@ -176,30 +212,52 @@ sequenceDiagram
             Svc->>Repo: save(Course)
             Repo-->>DB: COMMIT Transaction
             Svc-->>Ctrl: Success DTO
-            Ctrl-->>Client: 200 OK + Details
+            Ctrl-->>Client: 201 Created + Details
         end
     end
 ```
 
 ---
 
-## 5. Maintenance & Safety Guide
+## 6. Security Configuration
 
-When operating in this codebase, adhere to these strictly tied relationships:
+The `SecurityConfig.java` defines all access rules via a `SecurityFilterChain`:
 
-### A. Security Configuration
-*   **File**: `SecurityConfig.java`
-*   **Risk Level**: **EXTREME**
-*   **Impact**: Modifying `authorizeHttpRequests` mappings carelessly can expose admin routes (`/admin/**`) to public users. 
-*   **Rule**: Always use `.requestMatchers(HttpMethod.GET, "/public/**").permitAll()` and explicitly lock down `.anyRequest().authenticated()`.
+- **Static files** (`/`, `/index.html`, `/login.html`, `/admin.html`, `/css/**`, `/js/**`, `/img/**`) are fully public.
+- **Auth endpoint** (`/auth/**`) is public.
+- **Public API** (`GET /courses`, `POST /reservations`) is public.
+- **Admin API** (`/admin/**`) requires `ROLE_ADMIN` via `@PreAuthorize`.
+- **Session policy**: Stateless (`SessionCreationPolicy.STATELESS`).
+- **JWT Filter**: Runs before `UsernamePasswordAuthenticationFilter`, extracts and validates tokens from `Authorization: Bearer <token>` headers. Invalid tokens on public routes are gracefully ignored.
 
-### B. MapStruct Mappers
-*   **File**: Interfaces annotated with `@Mapper` in `mapper` package.
-*   **Risk Level**: **HIGH**
-*   **Impact**: If you rename an entity field from `price` to `cost`, but the DTO stays as `price`, Maven will fail to compile. MapStruct generates implementation classes during the `mvn compile` phase.
-*   **Rule**: Always verify field names cleanly align between Entity and DTO, or explicitly document `@Mapping(source = "cost", target = "price")`.
+---
 
-### C. Database Seeding Profiles
-*   **Location**: `config/seed/`
-*   **Status**: Currently utilizing three distinct profiles (`seed-initial`, `seed-running`, `seed-testing`).
-*   **Impact**: Never run `seed-testing` in the production environment. It will flood the live database with fake instructors and max-capacity courses. Ensure `application-prod.yaml` explicitly disables these profiles or lacks the `CommandLineRunner` beans entirely.
+## 7. Database Seeding Profiles
+
+| Profile | Class | Purpose |
+| :--- | :--- | :--- |
+| `seed-initial` | `InitialSeeder` | Creates admin user only (if not exists) |
+| `seed-running` | `RunningSeeder` | Clears existing courses + creates admin + seeds realistic class data with images |
+| `seed-testing` | `TestingSeeder` | Floods database with test data for QA |
+
+All seeders implement `SeedService` interface which provides `createAdminIfNotExists()`.
+
+> **⚠️ DANGER**: Never run `seed-testing` on production. It will fill the live database with fake data.
+
+---
+
+## 8. Critical Editing Rules
+
+### Changing an Entity Field
+If you edit an Entity (e.g., adding `phoneNumber` to `Reservation`), you **MUST** update:
+1. `Reservation.java` (Entity)
+2. `CreateReservationRequestDto.java` (Input DTO)
+3. `ReservationResponseDto.java` (Output DTO)
+4. `ReservationMapper.java` (MapStruct will fail to compile if fields mismatch)
+5. Frontend `booking.js` / `main.js` payload in the `fetch()` call
+
+### Changing Security Rules
+Modifying `authorizeHttpRequests` in `SecurityConfig.java` can expose admin routes to the public. Always verify the rule ordering and explicit locks on `/admin/**`.
+
+### MapStruct Mappers
+If you rename a field (e.g., `price` → `cost`) in an Entity but not in the DTO, Maven will fail at compile time. Always ensure field names match, or explicitly annotate with `@Mapping(source = "cost", target = "price")`.
