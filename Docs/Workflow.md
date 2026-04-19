@@ -1,3 +1,7 @@
+> [!WARNING]
+> **ARCHIVED / HISTORICAL DOCUMENT**
+> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture. Please refer to the root `README.md` for current, accurate operational instructions.
+
 # High-Level Architecture & Workflow Protocol
 
 *Author: System Architect / Technical Lead*

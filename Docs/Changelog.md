@@ -1,3 +1,7 @@
+> [!WARNING]
+> **ARCHIVED / HISTORICAL DOCUMENT**
+> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture. Please refer to the root `README.md` for current, accurate operational instructions.
+
 # Souplesse Pilates Extensive Changelog
 
 This document chronicles the macro and micro changes executed across the Souplesse Pilates codebase to resolve Docker dependencies, establish robust database seeding architecture, secure local development layers, and architect a top-tier project documentation foundation.

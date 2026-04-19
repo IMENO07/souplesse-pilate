@@ -1,3 +1,7 @@
+> [!WARNING]
+> **ARCHIVED / HISTORICAL DOCUMENT**
+> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture where the frontend loads natively from `src/main/resources/static/`. Please refer to the root `README.md` for current, accurate operational instructions.
+
 # Comprehensive Frontend Architecture Manual
 
 *Souplesse Pilates Studio User Interface*

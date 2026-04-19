@@ -1,3 +1,7 @@
+> [!WARNING]
+> **ARCHIVED / HISTORICAL DOCUMENT**
+> This document was part of the original design specifications. The application has since been refactored into an integrated, monolithic Spring Boot architecture. Please refer to the root `README.md` for current, accurate operational instructions.
+
 # Souplesse Pilates — Product Summary
 
 This document serves as a high-level overview of the **Souplesse Pilates** platform. It is written to clearly explain what the software does, who it is built for, and the core value it provides, entirely free of technical jargon.
