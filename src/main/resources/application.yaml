@@ -2,7 +2,7 @@ spring:
   application:
     name: souplesse-pilates
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/souplesse_pilates}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/souplesse_pilates}
     username: ${SPRING_DATASOURCE_USERNAME:pilates_user}
     password: ${SPRING_DATASOURCE_PASSWORD:pilates_pass}
     driver-class-name: org.postgresql.Driver

@@ -34,12 +34,13 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Static resources and HTML pages
-                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**")
+                        .requestMatchers("/", "/*.html", "/login", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**")
                         .permitAll()
                         // Auth
                         .requestMatchers("/auth/**").permitAll()

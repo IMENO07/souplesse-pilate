@@ -22,4 +22,5 @@ public class UpdateCourseRequestDto {
     private Integer capacity;
     private CourseStatus status;
     private URL imageUrl;
+    private Long instructorId;
 }

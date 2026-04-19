@@ -10,4 +10,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     boolean existsByEmailAndCourseId(String email, Long courseId);
 
     List<Reservation> findByCourseId(Long courseId);
+
+    void deleteByCourseId(Long courseId);
 }
