@@ -1,6 +1,9 @@
 target/
+*.jar
+.mvn/
+mvnw
+mvnw.cmd
 .git/
+.idea/
 .vscode/
-*.log
-*.iml
-HELP.md
+node_modules/

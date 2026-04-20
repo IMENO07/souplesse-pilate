@@ -1,20 +1,14 @@
-FROM maven:3.9.9-eclipse-temurin-17 AS build
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-
-COPY pom.xml ./
-COPY .mvn ./.mvn
-COPY mvnw ./
-
-RUN chmod +x mvnw
-RUN ./mvnw -q -DskipTests dependency:go-offline
-
+COPY pom.xml .
 COPY src ./src
-RUN ./mvnw -q -DskipTests package
+RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-jre
+# Run stage
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/souplesse-pilates-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
