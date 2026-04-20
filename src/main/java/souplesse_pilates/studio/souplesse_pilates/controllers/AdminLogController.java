@@ -21,4 +21,9 @@ public class AdminLogController {
     public ResponseEntity<List<AdminLog>> getLogs() {
         return ResponseEntity.ok(adminLogService.getRecentLogs());
     }
+
+    @GetMapping("/archive")
+    public ResponseEntity<List<AdminLog>> getArchive() {
+        return ResponseEntity.ok(adminLogService.getArchivedLogs());
+    }
 }

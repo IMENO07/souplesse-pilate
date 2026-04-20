@@ -168,10 +168,108 @@ function AdminCharts() {
   );
 }
 
+/* ── Log Archive Dialog ──────────────────────────── */
+function LogArchiveDialog({ onClose }) {
+  const [logs, setLogs] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filter, setFilter] = React.useState('');
+
+  React.useEffect(() => {
+    const fetchArchive = async () => {
+      try {
+        const resp = await fetch('/api/admin/logs/archive', {
+          headers: { 'Authorization': `Bearer ${window.useAuthStore.getState().token}` }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setLogs(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch archive:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArchive();
+  }, []);
+
+  const filteredLogs = logs.filter(l => 
+    l.message.toLowerCase().includes(filter.toLowerCase()) ||
+    l.type.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  return (
+    <div className="ui-modal-overlay" style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(10, 25, 47, 0.85)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+      padding: '40px'
+    }}>
+      <div className="admin-card" style={{ 
+        width: '100%', maxWidth: '900px', maxHeight: '85vh', 
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 24px 48px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <div className="admin-card-header" style={{ 
+          background: 'var(--deep)', borderBottom: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', justifyContent: 'space-between', padding: '20px 28px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>
+            </svg>
+            <span className="admin-card-title" style={{ color: 'white' }}>Archives des Activités Système</span>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.6 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div style={{ padding: '16px 28px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <input 
+            type="text" 
+            placeholder="Rechercher dans les archives (ex: DELETE, Réservation...)" 
+            className="ui-input" 
+            style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', background: '#0a192f', padding: '20px 28px' }}>
+          {loading ? (
+            <div style={{ color: 'var(--sand)', opacity: 0.5, textAlign: 'center', padding: 40 }}>Chargement des archives...</div>
+          ) : filteredLogs.length === 0 ? (
+            <div style={{ color: 'var(--sand)', opacity: 0.5, textAlign: 'center', padding: 40 }}>Aucune correspondance trouvée.</div>
+          ) : (
+            filteredLogs.map((log, i) => (
+              <div key={i} style={{ 
+                marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.03)',
+                fontFamily: 'monospace', fontSize: 13, display: 'flex', gap: 16 
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.2)', minWidth: 140 }}>[{log.timestamp}]</span>
+                <span style={{ color: 'var(--gold)', minWidth: 80, fontWeight: 'bold' }}>{log.type}</span>
+                <span style={{ color: 'rgba(255,255,255,0.7)' }}>{log.message}</span>
+              </div>
+            ))
+          )}
+        </div>
+        
+        <div style={{ padding: '16px 28px', background: 'var(--deep)', textAlign: 'right', fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+          {filteredLogs.length} entrées affichées
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Admin Activity Logs ────────────────────────── */
 function AdminActivityLogs() {
   const [logs, setLogs] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [showArchive, setShowArchive] = React.useState(false);
 
   const fetchLogs = async () => {
     try {
@@ -208,15 +306,29 @@ function AdminActivityLogs() {
   };
 
   return (
-    <div className="admin-card" style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
-      <div className="admin-card-header" style={{ background: 'var(--deep)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff5f56' }}></div>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffbd2e' }}></div>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#27c93f' }}></div>
-          <span className="admin-card-title" style={{ color: 'white', marginLeft: 10 }}>Console — Server Activity Logs</span>
+    <>
+      <div className="admin-card" style={{ marginTop: 24, padding: 0, overflow: 'hidden' }}>
+        <div className="admin-card-header" style={{ 
+          background: 'var(--deep)', borderBottom: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', justifyContent: 'space-between', width: '100%'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff5f56' }}></div>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffbd2e' }}></div>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#27c93f' }}></div>
+            <span className="admin-card-title" style={{ color: 'white', marginLeft: 10 }}>Console — Server Activity Logs</span>
+          </div>
+          <button 
+            onClick={() => setShowArchive(true)}
+            style={{ 
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', 
+              color: 'white', fontSize: 10, padding: '4px 10px', borderRadius: 2, cursor: 'pointer',
+              letterSpacing: '1px', textTransform: 'uppercase'
+            }}
+          >
+            Archives
+          </button>
         </div>
-      </div>
       <div className="admin-console" style={{ maxHeight: 300, overflowY: 'auto', background: '#0a192f', padding: '12px 16px' }}>
         {loading && logs.length === 0 ? (
           <div className="log-line" style={{ color: 'var(--sand)', opacity: 0.6 }}>Synchronisation en cours...</div>
@@ -231,8 +343,10 @@ function AdminActivityLogs() {
             </div>
           ))
         )}
+        </div>
       </div>
-    </div>
+      {showArchive && <LogArchiveDialog onClose={() => setShowArchive(false)} />}
+    </>
   );
 }
 /* ── Course Form Section ───────────────────────── */
