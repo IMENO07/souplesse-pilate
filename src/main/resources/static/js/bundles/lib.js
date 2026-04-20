@@ -561,3 +561,25 @@ window.CoursesDB = CoursesDB;
 window.InstructorsDB = InstructorsDB;
 window.ClientsDB = ClientsDB;
 window.ContentDB = ContentDB;
+
+window.SEOManager = {
+    set({ title, description, image, url }) {
+        const fullTitle = title ? `${title} | Souplesse Pilates` : 'Souplesse — Pilates Studio';
+        document.title = fullTitle;
+
+        const updateTag = (selector, attr, content) => {
+            if (!content) return;
+            const el = document.querySelector(selector);
+            if (el) el.setAttribute(attr, content);
+        };
+
+        updateTag('meta[name="description"]', 'content', description);
+        updateTag('meta[property="og:title"]', 'content', fullTitle);
+        updateTag('meta[property="og:description"]', 'content', description);
+        updateTag('meta[property="og:image"]', 'content', image);
+        updateTag('meta[property="og:url"]', 'content', url);
+        updateTag('meta[property="twitter:title"]', 'content', fullTitle);
+        updateTag('meta[property="twitter:description"]', 'content', description);
+        updateTag('meta[property="twitter:image"]', 'content', image);
+    }
+};

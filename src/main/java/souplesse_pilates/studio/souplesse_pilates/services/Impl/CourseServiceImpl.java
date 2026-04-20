@@ -33,6 +33,10 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("User is not an instructor");
         }
 
+        String coachFirstName = (dto.getCoachFirstName() == null || dto.getCoachFirstName().isBlank() || dto.getCoachFirstName().equals("Coach")) ? instructor.getFirstName() : dto.getCoachFirstName();
+        String coachLastName = (dto.getCoachLastName() == null || dto.getCoachLastName().isBlank() || dto.getCoachLastName().equals("Name")) ? instructor.getLastName() : dto.getCoachLastName();
+        String coachEmail = (dto.getCoachEmail() == null || dto.getCoachEmail().isBlank() || dto.getCoachEmail().equals("coach@example.com")) ? instructor.getEmail() : dto.getCoachEmail();
+
         Course course = Course.builder()
             .type(dto.getType())
             .description(dto.getDescription())
@@ -41,9 +45,9 @@ public class CourseServiceImpl implements CourseService {
             .time(dto.getTime())
             .capacity(dto.getCapacity())
             .title(dto.getTitle())
-            .coachFirstName(dto.getCoachFirstName())
-            .coachLastName(dto.getCoachLastName())
-            .coachEmail(dto.getCoachEmail())
+            .coachFirstName(coachFirstName)
+            .coachLastName(coachLastName)
+            .coachEmail(coachEmail)
             .imageUrl(dto.getImageUrl())
             .instructor(instructor)
             .build();
@@ -90,13 +94,13 @@ public class CourseServiceImpl implements CourseService {
         if (dto.getTitle() != null) {
             course.setTitle(dto.getTitle());
         }
-        if (dto.getCoachFirstName() != null) {
+        if (dto.getCoachFirstName() != null && !dto.getCoachFirstName().isBlank() && !dto.getCoachFirstName().equals("Coach")) {
             course.setCoachFirstName(dto.getCoachFirstName());
         }
-        if (dto.getCoachLastName() != null) {
+        if (dto.getCoachLastName() != null && !dto.getCoachLastName().isBlank() && !dto.getCoachLastName().equals("Name")) {
             course.setCoachLastName(dto.getCoachLastName());
         }
-        if (dto.getCoachEmail() != null) {
+        if (dto.getCoachEmail() != null && !dto.getCoachEmail().isBlank() && !dto.getCoachEmail().equals("coach@example.com")) {
             course.setCoachEmail(dto.getCoachEmail());
         }
 
@@ -104,6 +108,14 @@ public class CourseServiceImpl implements CourseService {
             User instructor = userRepository.findById(dto.getInstructorId())
                 .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
             course.setInstructor(instructor);
+            
+            // Sync names if they were previously default or null
+            if (course.getCoachFirstName() == null || course.getCoachFirstName().equals("Coach")) {
+                course.setCoachFirstName(instructor.getFirstName());
+            }
+            if (course.getCoachLastName() == null || course.getCoachLastName().equals("Name")) {
+                course.setCoachLastName(instructor.getLastName());
+            }
         }
 
         course.updateStatus();

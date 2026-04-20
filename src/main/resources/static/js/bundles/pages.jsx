@@ -9,6 +9,7 @@ function AdminLayout() {
   
   const [courses, setCourses] = React.useState([]);
   const [clients, setClients] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   // Auth guard
   React.useEffect(() => {
@@ -17,16 +18,30 @@ function AdminLayout() {
 
   // Load data
   const refresh = React.useCallback(async () => {
+    setLoading(true);
     try {
       const [c, cl] = await Promise.all([CoursesDB.getAll(), ClientsDB.getAll()]);
       setCourses(c || []);
       setClients(cl || []);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   React.useEffect(() => { refresh(); }, [refresh]);
 
-  const contextValue = { courses, clients, refresh, showToast };
+  React.useEffect(() => {
+    SEOManager.set({
+      title: 'Console Admin',
+      description: 'Gestion du studio Souplesse Pilates. Suivi des classes, clients et réservations.',
+      image: '/pilimg.jpeg',
+      url: window.location.href
+    });
+  }, []);
+
+  const contextValue = { courses, clients, loading, refresh, showToast };
 
   return (
     <>
@@ -42,7 +57,7 @@ function AdminLayout() {
 /* ── Admin Sub-pages ────────────────────────────── */
 
 function AdminDashboardPage() {
-  const { courses, clients } = ReactRouterDOM.useOutletContext();
+  const { courses, clients, loading } = ReactRouterDOM.useOutletContext();
   const todayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
@@ -54,7 +69,7 @@ function AdminDashboardPage() {
         </div>
         <span className="admin-header-date">{todayStr}</span>
       </div>
-      <AdminStats courses={courses} clients={clients}/>
+      <AdminStats courses={courses} clients={clients} loading={loading}/>
       
       <AdminCharts courses={courses} />
       
@@ -96,7 +111,7 @@ function AdminClassesPage() {
       </div>
 
       <div className="admin-layout" id="coursesSection">
-        <CoursesTable courses={courses} onEdit={openEditCourse} onDelete={askDelete}/>
+        <CoursesTable courses={courses} loading={loading} onEdit={openEditCourse} onDelete={askDelete}/>
       </div>
 
       <Dialog isOpen={isCourseDialogOpen} onClose={() => setIsCourseDialogOpen(false)} size="lg">
@@ -240,7 +255,7 @@ function AdminClientsPage() {
       </div>
 
       <div className="admin-layout" id="clientsSection">
-        <ClientsTable clients={clients} onEdit={openEditClient} onDelete={askDelete}/>
+        <ClientsTable clients={clients} loading={loading} courses={courses} onEdit={openEditClient} onDelete={askDelete}/>
       </div>
 
       <Dialog isOpen={isClientDialogOpen} onClose={() => setIsClientDialogOpen(false)}>
@@ -284,15 +299,30 @@ function AdminContentPage() {
 /* ── Home Page ──────────────────────────────────── */
 function HomePage() {
   const [courses, setCourses] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   const loadCourses = React.useCallback(async () => {
+    setLoading(true);
     try {
       const data = await CoursesDB.getAll();
       setCourses(data || []);
-    } catch (e) { console.error("Failed to load courses", e); }
+    } catch (e) { 
+      console.error("Failed to load courses", e); 
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   React.useEffect(() => { loadCourses(); }, [loadCourses]);
+
+  React.useEffect(() => {
+    SEOManager.set({
+      title: 'Studio Pilates Alger',
+      description: 'Un sanctuaire dédié au mouvement intentionnel. Reformer Pilates à Alger.',
+      image: '/pilimg.jpeg',
+      url: window.location.href
+    });
+  }, []);
 
   // Scroll animations (fade-up)
   React.useEffect(() => {
@@ -333,8 +363,8 @@ function HomePage() {
       <Navbar/>
       <Hero/>
       <StudioShowcase/>
-      <CoursesGrid courses={courses} onBook={handleBookFromGrid}/>
-      <BookingCalendar courses={courses} refreshCourses={loadCourses}/>
+      <CoursesGrid courses={courses} loading={loading} onBook={handleBookFromGrid}/>
+      <BookingCalendar courses={courses} loading={loading} refreshCourses={loadCourses}/>
       <Testimonials/>
       <Gallery/>
       <Footer/>
