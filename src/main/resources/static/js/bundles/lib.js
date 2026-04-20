@@ -21,7 +21,7 @@ const api = {
             const response = await fetch(`${API_BASE}${endpoint}`, config);
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Critical: Use the store to clear state across the whole app
+                    // Only logout on real 401 Unauthorized errors
                     if (window.useAuthStore) {
                         window.useAuthStore.getState().logout();
                     } else {
@@ -29,13 +29,20 @@ const api = {
                     }
                     window.location.hash = '#/login';
                 }
-                // Ignore empty bodies for errors
+                
+                // For other errors (500, etc.), parse message and re-throw
                 let errorData;
                 try {
                      errorData = await response.json();
                 } catch(e) {
-                     errorData = { message: `API Error: ${response.status} ${response.statusText}` };
+                     errorData = { message: `Erreur Serveur: ${response.status} ${response.statusText}` };
                 }
+                
+                // Notify the user if toast is available
+                if (window.useToastStore) {
+                    window.useToastStore.getState().showToast(errorData.message || errorData.error || "Une erreur est survenue", "error");
+                }
+                
                 throw errorData;
             }
             

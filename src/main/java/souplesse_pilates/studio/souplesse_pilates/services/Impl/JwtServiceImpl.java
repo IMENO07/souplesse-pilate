@@ -14,7 +14,7 @@ import souplesse_pilates.studio.souplesse_pilates.services.JwtService;
 @Service
 public class JwtServiceImpl implements JwtService {
     private final String secretKey = "mySuperSecretKeyForJwtSigningNeedsAtLeast32Chars";
-    private final long expirationTime = 3600000; // Durée de validité du token (1 heure)
+    private final long expirationTime = 86400000; // Durée de validité du token (24 heures)
 
     @Override
     public Key getKey() {
