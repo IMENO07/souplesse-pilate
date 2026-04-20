@@ -4,8 +4,8 @@ function Hero() {
   const [images, setImages] = React.useState([]);
   React.useEffect(() => { ContentDB.getStudioImages().then(res => setImages(res.map(i=>i.imageUrl))); }, []);
 
-  const bgImg = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1600&q=80';
-  const cardImg = images.length > cardIdx ? images[cardIdx] : (images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80');
+  const bgImg = images.length > 0 ? images[0] : 'studio-hero.jpg';
+  const cardImg = images.length > cardIdx ? images[cardIdx] : (images.length > 0 ? images[0] : 'studio-hero.jpg');
 
   return (
     <section id="hero">
@@ -46,8 +46,8 @@ function StudioShowcase() {
   const [images, setImages] = React.useState([]);
   React.useEffect(() => { ContentDB.getStudioImages().then(res => setImages(res.map(i=>i.imageUrl))); }, []);
 
-  const img1 = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80';
-  const img2 = images.length > 1 ? images[1] : 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=80';
+  const img1 = images.length > 0 ? images[0] : 'studio-hero.jpg';
+  const img2 = images.length > 1 ? images[1] : 'studio-detail.jpg';
 
   return (
     <section id="studio">
