@@ -43,7 +43,7 @@ public class SecurityConfig {
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Static resources and HTML pages
-                        .requestMatchers("/", "/index.html", "/login.html", "/admin.html", "/booking.html", "/login", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**", "/assets/**")
+                        .requestMatchers("/", "/index.html", "/login.html", "/admin.html", "/booking.html", "/login", "/error", "/error/**", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**", "/assets/**")
                         .permitAll()
                         // Auth
                         .requestMatchers("/auth/**").permitAll()
