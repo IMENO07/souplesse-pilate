@@ -3,7 +3,7 @@ package souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.net.URL;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +25,6 @@ public class UpdateCourseRequestDto {
     private LocalTime time;
     private Integer capacity;
     private CourseStatus status;
-    private URL imageUrl;
+    private String imageUrl;
     private Long instructorId;
 }

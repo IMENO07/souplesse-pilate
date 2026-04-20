@@ -18,7 +18,6 @@
 body {
   background: var(--admin-bg);
   min-height: 100vh;
-  display: flex;
   font-family: var(--sans);
 }
 
@@ -109,6 +108,20 @@ body {
   transition: color .2s;
 }
 .sidebar-back:hover { color: rgba(255,255,255,.8); }
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  text-decoration: none;
+  transition: color .2s;
+  margin-top: 12px;
+}
+.sidebar-logout:hover { color: #e74c3c; }
 
 /* ── Main content ───────────────────────────────────── */
 .admin-main {

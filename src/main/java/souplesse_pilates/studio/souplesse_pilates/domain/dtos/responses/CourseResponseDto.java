@@ -1,7 +1,7 @@
 package souplesse_pilates.studio.souplesse_pilates.domain.dtos.responses;
 
 import java.math.BigDecimal;
-import java.net.URL;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -22,7 +22,7 @@ public record CourseResponseDto(
     Integer capacity,
     Integer reservedSpots,
     CourseStatus status,
-    URL imageUrl,
+    String imageUrl,
     Long instructorId
 ) {
 }

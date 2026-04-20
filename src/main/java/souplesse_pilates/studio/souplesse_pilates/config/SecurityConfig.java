@@ -51,8 +51,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/courses", "/courses/**").permitAll()
                         // Public booking
                         .requestMatchers("/reservations", "/reservations/**").permitAll()
+                        // Public content endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/content/**", "/api/images/**").permitAll()
                         // Admin only
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/content/**", "/api/images/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/content/**", "/api/images/**").hasRole("ADMIN")
                         // Everything else
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex

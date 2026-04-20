@@ -9,11 +9,17 @@ import org.springframework.stereotype.Component;
 
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.Course;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.User;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.Testimonial;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.GalleryItem;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.StudioImage;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseStatus;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseType;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.UserRole;
 import souplesse_pilates.studio.souplesse_pilates.repositories.CourseRepository;
 import souplesse_pilates.studio.souplesse_pilates.repositories.UserRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.TestimonialRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.GalleryItemRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.StudioImageRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +33,9 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
 
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final TestimonialRepository testimonialRepository;
+    private final GalleryItemRepository galleryItemRepository;
+    private final StudioImageRepository studioImageRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -57,7 +66,7 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
                 .reservedSpots(2)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor1)
-                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80").toURL())
+                .imageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80")
                 .build());
 
             courseRepository.save(Course.builder()
@@ -71,7 +80,7 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
                 .reservedSpots(1)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor2)
-                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1540206395-68808572332f?w=800&q=80").toURL())
+                .imageUrl("https://images.unsplash.com/photo-1540206395-68808572332f?w=800&q=80")
                 .build());
 
             courseRepository.save(Course.builder()
@@ -85,7 +94,7 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
                 .reservedSpots(5)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor3)
-                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?w=800&q=80").toURL())
+                .imageUrl("https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?w=800&q=80")
                 .build());
 
             courseRepository.save(Course.builder()
@@ -99,7 +108,7 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
                 .reservedSpots(4)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor1)
-                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80").toURL())
+                .imageUrl("https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80")
                 .build());
                 
             courseRepository.save(Course.builder()
@@ -113,8 +122,35 @@ public class RunningSeeder implements CommandLineRunner, SeedService {
                 .reservedSpots(0)
                 .status(CourseStatus.AVAILABLE)
                 .instructor(instructor2)
-                .imageUrl(new java.net.URI("https://images.unsplash.com/photo-1601925228008-e9acc5c9adce?w=800&q=80").toURL())
+                .imageUrl("https://images.unsplash.com/photo-1601925228008-e9acc5c9adce?w=800&q=80")
                 .build());
+        }
+
+        // 4. Testimonials
+        if (testimonialRepository.count() == 0) {
+            log.info("Creating initial testimonials...");
+            testimonialRepository.save(Testimonial.builder().text("Le studio m'a transformée. L'atmosphère, les instructeurs — chaque détail est pensé pour le mouvement.").name("Amira B.").role("Membre depuis 2023").displayOrder(1).build());
+            testimonialRepository.save(Testimonial.builder().text("J'ai essayé des dizaines de studios. Souplesse est le seul où je me sens vraiment chez moi.").name("Yasmina K.").role("Pratiquante régulière").displayOrder(2).build());
+            testimonialRepository.save(Testimonial.builder().text("La qualité de l'enseignement ici est incomparable. Mon corps n'a jamais été aussi fort.").name("Sofia M.").role("6 mois de pratique").displayOrder(3).build());
+            testimonialRepository.save(Testimonial.builder().text("Un havre de paix en plein cœur d'Alger. Chaque séance est un moment de reconnexion avec soi.").name("Nadia L.").role("Membre fondatrice").displayOrder(4).build());
+        }
+
+        // 5. Gallery Items
+        if (galleryItemRepository.count() == 0) {
+            log.info("Creating initial gallery items...");
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80").caption("Morning Flow").likes(2340).featured(false).displayOrder(1).build());
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80").caption("Studio Arches").likes(3120).featured(true).displayOrder(2).build());
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=600&q=80").caption("Reformer Precision").likes(1890).featured(false).displayOrder(3).build());
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80").caption("Glass Wall Session").likes(4100).featured(true).displayOrder(4).build());
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80").caption("Sunset Stretch").likes(2780).featured(false).displayOrder(5).build());
+            galleryItemRepository.save(GalleryItem.builder().imageUrl("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80").caption("Community Day").likes(3560).featured(false).displayOrder(6).build());
+        }
+
+        // 6. Studio Images
+        if (studioImageRepository.count() == 0) {
+            log.info("Creating initial studio images...");
+            studioImageRepository.save(StudioImage.builder().imageUrl("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80").displayOrder(1).build());
+            studioImageRepository.save(StudioImage.builder().imageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80").displayOrder(2).build());
         }
 
         log.info("RUNNING database seed completed.");

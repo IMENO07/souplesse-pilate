@@ -1,6 +1,6 @@
 package souplesse_pilates.studio.souplesse_pilates.domain.entities;
 import java.math.BigDecimal;
-import java.net.URL;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -59,7 +59,7 @@ public class Course {
     private Integer reservedSpots = 0;
 
     @Column(name = "image_url")
-    private URL imageUrl;
+    private String imageUrl;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
