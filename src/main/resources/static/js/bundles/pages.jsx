@@ -79,7 +79,7 @@ function AdminDashboardPage() {
 }
 
 function AdminClassesPage() {
-  const { courses, refresh, showToast } = ReactRouterDOM.useOutletContext();
+  const { courses, loading, refresh, showToast } = ReactRouterDOM.useOutletContext();
   const [editingCourse, setEditingCourse] = React.useState(null);
   const [isCourseDialogOpen, setIsCourseDialogOpen] = React.useState(false);
   const [deleteConfirm, setDeleteConfirm] = React.useState({ open: false, id: null, title: '' });
@@ -215,7 +215,7 @@ function AdminInstructorsPage() {
 }
 
 function AdminClientsPage() {
-  const { clients, courses, refresh, showToast } = ReactRouterDOM.useOutletContext();
+  const { clients, courses, loading, refresh, showToast } = ReactRouterDOM.useOutletContext();
   const [isClientDialogOpen, setIsClientDialogOpen] = React.useState(false);
   const [editingClient, setEditingClient] = React.useState(null);
   const [deleteConfirm, setDeleteConfirm] = React.useState({ open: false, id: null, title: '' });

@@ -81,6 +81,23 @@ function Newsletter() {
 }
 
 function Footer() {
+  const { useNavigate, useLocation } = ReactRouterDOM;
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  function navTo(id) {
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
   return (
     <footer id="footer">
       <Newsletter/>
@@ -90,7 +107,7 @@ function Footer() {
           <div className="footer-brand-sub">Pilates Studio · Alger</div>
           <p className="footer-brand-desc">Un sanctuaire pour le mouvement intentionnel. Là où l'architecture rencontre l'art du Pilates.</p>
           <div className="footer-socials">
-            <a href="#" className="footer-social">IG</a>
+            <a href="https://instagram.com" target="_blank" className="footer-social">IG</a>
             <a href="#" className="footer-social">TK</a>
             <a href="#" className="footer-social">FB</a>
           </div>
@@ -98,10 +115,10 @@ function Footer() {
         <div className="footer-col">
           <div className="footer-col-title">Studio</div>
           <a href="#/about">À propos</a>
-          <a href="#/classes">Classes</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navTo('classes'); }}>Classes</a>
           <a href="#/admin">Instructeurs</a>
           <a href="#/pricing">Tarifs</a>
-          <a href="#/booking">Réservations</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); navTo('booking'); }}>Réservations</a>
         </div>
         <div className="footer-col">
           <div className="footer-col-title">Contact</div>
@@ -120,44 +137,52 @@ function Footer() {
 }
 /* ── Navbar Component ───────────────────────────── */
 function Navbar() {
-  const { Link } = ReactRouterDOM;
+  const { useNavigate, useLocation } = ReactRouterDOM;
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   function closeMobile() { setMobileOpen(false); }
 
-  function scrollTo(id) {
+  function navTo(id) {
     closeMobile();
-    setTimeout(() => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    }
   }
 
   return (
     <>
       <nav id="nav">
-        <a href="#" className="nav-logo" onClick={() => scrollTo('hero')}>
+        <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navTo('hero'); }}>
           <span>SOUPLESSE</span>
           <span>Pilates Studio</span>
         </a>
         <div className="nav-links">
-          <a href="#/about" className="nav-link">Studio</a>
-          <a href="#/classes" className="nav-link" onClick={() => scrollTo('classes')}>Classes</a>
-          <a href="#/pricing" className="nav-link">Tarifs</a>
-          <a href="#/booking" className="nav-link" onClick={() => scrollTo('booking')}>Booking</a>
-          <a href="#footer" className="nav-link" onClick={() => scrollTo('footer')}>Contact</a>
-          <a href="#/booking" className="nav-cta" onClick={() => scrollTo('booking')}>Book Now</a>
+          <a href="#/about" className="nav-link" onClick={closeMobile}>Studio</a>
+          <a href="#/classes" className="nav-link" onClick={(e) => { e.preventDefault(); navTo('classes'); }}>Classes</a>
+          <a href="#/pricing" className="nav-link" onClick={closeMobile}>Tarifs</a>
+          <a href="#/booking" className="nav-link" onClick={(e) => { e.preventDefault(); navTo('booking'); }}>Booking</a>
+          <a href="#footer" className="nav-link" onClick={(e) => { e.preventDefault(); navTo('footer'); }}>Contact</a>
+          <a href="#/booking" className="nav-cta" onClick={(e) => { e.preventDefault(); navTo('booking'); }}>Book Now</a>
         </div>
         <button className={`hamburger${mobileOpen ? ' active' : ''}`} aria-label="Menu" onClick={() => setMobileOpen(!mobileOpen)}>
           <span></span><span></span><span></span>
         </button>
       </nav>
       <div id="mobile-menu" style={{ display: mobileOpen ? 'flex' : 'none' }}>
-        <a href="#" onClick={() => scrollTo('studio')}>Studio</a>
-        <a href="#" onClick={() => scrollTo('classes')}>Classes</a>
-        <a href="#" onClick={() => scrollTo('booking')}>Booking</a>
-        <a href="#" onClick={() => scrollTo('community')}>Community</a>
-        <a href="#" onClick={() => scrollTo('footer')}>Contact</a>
+        <a href="#/about" onClick={closeMobile}>Studio</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navTo('classes'); }}>Classes</a>
+        <a href="#/pricing" onClick={closeMobile}>Tarifs</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navTo('booking'); }}>Booking</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); navTo('footer'); }}>Contact</a>
       </div>
     </>
   );

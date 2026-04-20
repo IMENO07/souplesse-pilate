@@ -1,5 +1,5 @@
 /* ── Admin Stats Section ───────────────────────── */
-function AdminStats({ courses, clients }) {
+function AdminStats({ courses, clients, loading }) {
   const [logCount, setLogCount] = React.useState(0);
 
   React.useEffect(() => {
@@ -571,7 +571,7 @@ function CourseForm({ editingCourse, onSave, onCancel }) {
   );
 }
 /* ── Courses Table Section ──────────────────────── */
-function CoursesTable({ courses, onEdit, onDelete }) {
+function CoursesTable({ courses, loading, onEdit, onDelete }) {
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState('');
   const [page, setPage] = React.useState(1);
@@ -869,7 +869,7 @@ function ClientForm({ courses, onSave, onCancel }) {
   );
 }
 /* ── Clients Table Section ──────────────────────── */
-function ClientsTable({ clients, onEdit, onDelete }) {
+function ClientsTable({ clients, loading, onEdit, onDelete }) {
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState('');
   const [page, setPage] = React.useState(1);
