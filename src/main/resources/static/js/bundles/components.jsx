@@ -97,11 +97,11 @@ function Footer() {
         </div>
         <div className="footer-col">
           <div className="footer-col-title">Studio</div>
-          <a href="#">À propos</a>
-          <a href="#">Classes</a>
-          <a href="#">Instructeurs</a>
-          <a href="pilimg.jpeg">Tarifs</a>
-          <a href="#">Cartes Cadeaux</a>
+          <a href="#/about">À propos</a>
+          <a href="#/classes">Classes</a>
+          <a href="#/admin">Instructeurs</a>
+          <a href="#/pricing">Tarifs</a>
+          <a href="#/booking">Réservations</a>
         </div>
         <div className="footer-col">
           <div className="footer-col-title">Contact</div>
@@ -141,12 +141,12 @@ function Navbar() {
           <span>Pilates Studio</span>
         </a>
         <div className="nav-links">
-          <a href="#studio" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('studio'); }}>Studio</a>
-          <a href="#classes" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('classes'); }}>Classes</a>
-          <a href="#booking" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('booking'); }}>Booking</a>
-          <a href="#community" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('community'); }}>Community</a>
-          <a href="#footer" className="nav-link" onClick={(e) => { e.preventDefault(); scrollTo('footer'); }}>Contact</a>
-          <a href="#booking" className="nav-cta" onClick={(e) => { e.preventDefault(); scrollTo('booking'); }}>Book Now</a>
+          <a href="#/about" className="nav-link">Studio</a>
+          <a href="#/classes" className="nav-link" onClick={() => scrollTo('classes')}>Classes</a>
+          <a href="#/pricing" className="nav-link">Tarifs</a>
+          <a href="#/booking" className="nav-link" onClick={() => scrollTo('booking')}>Booking</a>
+          <a href="#footer" className="nav-link" onClick={() => scrollTo('footer')}>Contact</a>
+          <a href="#/booking" className="nav-cta" onClick={() => scrollTo('booking')}>Book Now</a>
         </div>
         <button className={`hamburger${mobileOpen ? ' active' : ''}`} aria-label="Menu" onClick={() => setMobileOpen(!mobileOpen)}>
           <span></span><span></span><span></span>

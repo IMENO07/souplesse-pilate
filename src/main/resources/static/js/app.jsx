@@ -2,6 +2,8 @@ const { createHashRouter, RouterProvider, Navigate } = ReactRouterDOM;
 
 const router = createHashRouter([
   { path: "/", element: <HomePage /> },
+  { path: "/about", element: <AboutPage /> },
+  { path: "/pricing", element: <PricingPage /> },
   { path: "/login", element: <LoginPage /> },
   { 
     path: "/admin", 

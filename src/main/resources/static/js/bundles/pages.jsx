@@ -371,6 +371,97 @@ function HomePage() {
     </>
   );
 }
+
+/* ── About Page ─────────────────────────────────── */
+function AboutPage() {
+  React.useEffect(() => {
+    SEOManager.set({
+      title: 'Notre Histoire',
+      description: 'Découvrez l\'esprit Souplesse. Un studio fondé sur la passion du mouvement et le raffinement.',
+      image: '/pilimg.jpeg',
+      url: window.location.href
+    });
+  }, []);
+
+  return (
+    <div className="subpage-wrapper">
+      <Navbar />
+      <header className="subpage-header">
+        <div className="container">
+          <p className="label fade-up">L'Esprit Souplesse</p>
+          <h1 className="section-title fade-up">Mouvement <em style={{ fontStyle: 'italic', color: 'var(--sand)' }}>Intentionnel</em></h1>
+        </div>
+      </header>
+      
+      <section className="container subpage-content">
+        <div className="about-grid">
+           <div className="fade-up">
+              <h2>Arches & Lumière</h2>
+              <p>Fondé en 2023 à Alger, Souplesse est né d'un désir de créer un espace où le mouvement ne serait pas seulement physique, mais aussi une forme d'art et de méditation.</p>
+              <p>Notre studio a été conçu par des architectes passionnés, utilisant des matériaux naturels comme le chêne clair et le plâtre texturé pour créer une atmosphère de sérénité absolue.</p>
+           </div>
+           <div className="fade-up">
+              <h2>La Pratique Reformer</h2>
+              <p>Nous nous spécialisons dans le Reformer Pilates, une méthode qui utilise des ressorts pour offrir une résistance fluide, permettant de sculpter le corps tout en protégeant les articulations.</p>
+              <p>Chaque séance est limitée à un petit nombre de participants pour garantir une attention personnalisée de la part de nos instructeurs certifiés.</p>
+           </div>
+        </div>
+      </section>
+      <Footer />
+    </div>
+  );
+}
+
+/* ── Pricing Page ───────────────────────────────── */
+function PricingPage() {
+  React.useEffect(() => {
+    SEOManager.set({
+      title: 'Nos Tarifs',
+      description: 'Explorez nos formules et abonnements. Des séances à la carte ou des packs pour votre pratique régulière.',
+      image: '/pilimg.jpeg',
+      url: window.location.href
+    });
+  }, []);
+
+  const packs = [
+    { name: "Séance Découverte", price: "2,500 DA", desc: "Idéal pour votre première immersion dans le studio.", features: ["1 Séance Reformer", "Validité 7 jours", "Accès Vestiaires"] },
+    { name: "Pack 10 Séances", price: "22,000 DA", desc: "Pour une pratique régulière et des résultats visibles.", features: ["10 Séances Reformer", "Validité 3 mois", "Priorité Réservation"] },
+    { name: "Abonnement Monthly", price: "35,000 DA", desc: "L'engagement total pour votre transformation.", features: ["Séances Illimitées", "Accès à toutes les classes", "Invitations Workshops"] }
+  ];
+
+  return (
+    <div className="subpage-wrapper">
+      <Navbar />
+      <header className="subpage-header">
+        <div className="container" style={{ textAlign: 'center' }}>
+          <p className="label fade-up">Investissez en Vous</p>
+          <h1 className="section-title fade-up">Nos <em style={{ fontStyle: 'italic', color: 'var(--sand)' }}>Formules</em></h1>
+        </div>
+      </header>
+
+      <section className="container" style={{ paddingBottom: '100px' }}>
+        <div className="pricing-grid">
+          {packs.map((p, i) => (
+            <div key={i} className="pricing-card fade-up" style={{ transitionDelay: `${i * 0.1}s` }}>
+              <div className="pricing-name">{p.name}</div>
+              <div className="pricing-price">{p.price}</div>
+              <p className="pricing-desc">{p.desc}</p>
+              <ul className="pricing-features">
+                {p.features.map((f, j) => <li key={j}>{f}</li>)}
+              </ul>
+              <button className="btn-primary" style={{ width: '100%', marginTop: 'auto' }} onClick={() => window.location.hash = '#/booking'}>Choisir cette offre</button>
+            </div>
+          ))}
+        </div>
+        
+        <div className="pricing-note fade-up">
+           <p>* Toutes nos classes sont sur réservation uniquement. Annulation possible jusqu'à 12h avant le début de la séance.</p>
+        </div>
+      </section>
+      <Footer />
+    </div>
+  );
+}
 /* ── Login Page ─────────────────────────────────── */
 function LoginPage() {
   const { useNavigate } = ReactRouterDOM;
