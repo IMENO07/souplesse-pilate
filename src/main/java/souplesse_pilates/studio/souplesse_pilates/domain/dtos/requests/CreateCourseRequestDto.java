@@ -1,6 +1,6 @@
 package souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests;
 import java.math.BigDecimal;
-import java.net.URL;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -19,6 +19,11 @@ public class CreateCourseRequestDto {
     @NotNull
     private CourseType type;
 
+    private String title;
+    private String coachFirstName;
+    private String coachLastName;
+    private String coachEmail;
+
     @NotBlank
     private String description;
 
@@ -34,7 +39,7 @@ public class CreateCourseRequestDto {
     @NotNull
     private Integer capacity;
 
-    private URL imageUrl;
+    private String imageUrl;
 
     @NotNull
     private Long instructorId;

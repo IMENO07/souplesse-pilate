@@ -1,37 +1,28 @@
+version: '3.8'
+
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: souplesse-postgres
+  app:
+    build: .
+    ports:
+      - "8080:8080"
     environment:
-      POSTGRES_DB: souplesse_pilates
-      POSTGRES_USER: pilates_user
-      POSTGRES_PASSWORD: pilates_pass
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/souplesse_pilates
+      - SPRING_DATASOURCE_USERNAME=pilates_user
+      - SPRING_DATASOURCE_PASSWORD=pilates_pass
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=souplesse_pilates
+      - POSTGRES_USER=pilates_user
+      - POSTGRES_PASSWORD=pilates_pass
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pilates_user -d souplesse_pilates"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: souplesse-app
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/souplesse_pilates
-      SPRING_DATASOURCE_USERNAME: pilates_user
-      SPRING_DATASOURCE_PASSWORD: pilates_pass
-      SERVER_PORT: 8080
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
 
 volumes:
-  postgres_data:    
+  postgres_data:

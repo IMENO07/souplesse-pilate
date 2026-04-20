@@ -22,12 +22,14 @@ import souplesse_pilates.studio.souplesse_pilates.services.UserService;
 public class InstructorAdminController {
     private final UserService userService;
     private final UserMapper userMapper;
+    private final souplesse_pilates.studio.souplesse_pilates.services.AdminLogService adminLogService;
 
     @PostMapping
     public ResponseEntity<UserResponseDto> createInstructor(
             @Valid @RequestBody UserRequestDto dto) {
 
         User instructor = userService.createInstructor(dto);
+        adminLogService.log("CREATE", "Nouvel instructeur créé: " + instructor.getFirstName() + " " + instructor.getLastName());
         return ResponseEntity.ok(userMapper.toDto(instructor));
     }
 
@@ -37,6 +39,7 @@ public class InstructorAdminController {
             @Valid @RequestBody UpdateInstructorRequestDto dto) {
 
         User updated = userService.updateInstructor(id, dto);
+        adminLogService.log("UPDATE", "Instructeur mis à jour: " + updated.getFirstName() + " " + updated.getLastName());
         return ResponseEntity.ok(userMapper.toDto(updated));
     }
 
@@ -44,6 +47,7 @@ public class InstructorAdminController {
     public ResponseEntity<Void> deleteInstructor(@PathVariable Long id) {
 
         userService.deleteInstructor(id);
+        adminLogService.log("DELETE", "Instructeur supprimé (ID: " + id + ")");
         return ResponseEntity.noContent().build();
     }
 

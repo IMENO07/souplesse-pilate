@@ -1,6 +1,6 @@
 package souplesse_pilates.studio.souplesse_pilates.domain.entities;
 import java.math.BigDecimal;
-import java.net.URL;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -26,6 +26,18 @@ public class Course {
     @Enumerated(EnumType.STRING)
     private CourseType type;
 
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "coach_first_name")
+    private String coachFirstName;
+
+    @Column(name = "coach_last_name")
+    private String coachLastName;
+
+    @Column(name = "coach_email")
+    private String coachEmail;
+
     @Column(name = "description", nullable = false)
     private String description;
 
@@ -47,7 +59,7 @@ public class Course {
     private Integer reservedSpots = 0;
 
     @Column(name = "image_url")
-    private URL imageUrl;
+    private String imageUrl;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

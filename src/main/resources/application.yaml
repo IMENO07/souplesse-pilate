@@ -7,6 +7,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:pilates_pass}
     driver-class-name: org.postgresql.Driver
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     properties:
@@ -30,6 +31,11 @@ spring:
   web:
     resources:
       static-locations: classpath:/static/
+      cache:
+        period: 0
+        cachecontrol:
+          no-store: true
+          must-revalidate: true
 
 server:
   port: ${SERVER_PORT:8080}

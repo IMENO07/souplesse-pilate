@@ -12,6 +12,7 @@ import souplesse_pilates.studio.souplesse_pilates.domain.entities.Course;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.User;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseStatus;
 import souplesse_pilates.studio.souplesse_pilates.repositories.CourseRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.ReservationRepository;
 import souplesse_pilates.studio.souplesse_pilates.repositories.UserRepository;
 import souplesse_pilates.studio.souplesse_pilates.services.CourseService;
 
@@ -20,6 +21,7 @@ import souplesse_pilates.studio.souplesse_pilates.services.CourseService;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public Course createCourse(CreateCourseRequestDto dto) {
@@ -38,6 +40,10 @@ public class CourseServiceImpl implements CourseService {
             .date(dto.getDate())
             .time(dto.getTime())
             .capacity(dto.getCapacity())
+            .title(dto.getTitle())
+            .coachFirstName(dto.getCoachFirstName())
+            .coachLastName(dto.getCoachLastName())
+            .coachEmail(dto.getCoachEmail())
             .imageUrl(dto.getImageUrl())
             .instructor(instructor)
             .build();
@@ -81,13 +87,34 @@ public class CourseServiceImpl implements CourseService {
             course.setImageUrl(dto.getImageUrl());
         }
 
+        if (dto.getTitle() != null) {
+            course.setTitle(dto.getTitle());
+        }
+        if (dto.getCoachFirstName() != null) {
+            course.setCoachFirstName(dto.getCoachFirstName());
+        }
+        if (dto.getCoachLastName() != null) {
+            course.setCoachLastName(dto.getCoachLastName());
+        }
+        if (dto.getCoachEmail() != null) {
+            course.setCoachEmail(dto.getCoachEmail());
+        }
+
+        if (dto.getInstructorId() != null) {
+            User instructor = userRepository.findById(dto.getInstructorId())
+                .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
+            course.setInstructor(instructor);
+        }
+
         course.updateStatus();
 
         return courseRepository.save(course);
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public void deleteCourse(Long id) {
+        reservationRepository.deleteByCourseId(id);
         courseRepository.deleteById(id);
     }
 

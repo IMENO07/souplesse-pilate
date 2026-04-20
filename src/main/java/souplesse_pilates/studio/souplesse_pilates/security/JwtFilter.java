@@ -21,10 +21,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
-    // Skip filter entirely for OPTIONS preflight requests
+    // Skip filter for OPTIONS preflight requests and H2 console
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getMethod().equalsIgnoreCase("OPTIONS");
+        String path = request.getServletPath();
+        return request.getMethod().equalsIgnoreCase("OPTIONS")
+                || path.startsWith("/h2-console");
     }
 
     @Override
@@ -45,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             if (!jwtService.isValid(token)) {
-                sendError(response, "Token expired or invalid");
+                filterChain.doFilter(request, response);
                 return;
             }
 
@@ -61,16 +63,12 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            sendError(response, "Token processing failed: " + e.getMessage());
+            filterChain.doFilter(request, response);
             return;
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void sendError(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"" + message + "\"}");
-    }
+
 }

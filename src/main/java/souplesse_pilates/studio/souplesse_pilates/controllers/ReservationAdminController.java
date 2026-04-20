@@ -21,6 +21,7 @@ public class ReservationAdminController {
 
     private final ReservationService reservationService;
     private final ReservationMapper reservationMapper;
+    private final souplesse_pilates.studio.souplesse_pilates.services.AdminLogService adminLogService;
 
     // View all reservations
     @GetMapping
@@ -50,13 +51,15 @@ public class ReservationAdminController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateReservationRequestDto dto) {
 
-        return ResponseEntity.ok(
-            reservationMapper.toDto(reservationService.updateReservation(id, dto)));
+        var updated = reservationService.updateReservation(id, dto);
+        adminLogService.log("UPDATE", "Réservation (ID: " + id + ") mise à jour.");
+        return ResponseEntity.ok(reservationMapper.toDto(updated));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         reservationService.deleteReservation(id);
+        adminLogService.log("DELETE", "Réservation (ID: " + id + ") supprimée.");
         return ResponseEntity.noContent().build();
     }
 }

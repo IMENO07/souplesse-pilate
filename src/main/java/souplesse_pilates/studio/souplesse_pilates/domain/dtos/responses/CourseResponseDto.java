@@ -1,7 +1,7 @@
 package souplesse_pilates.studio.souplesse_pilates.domain.dtos.responses;
 
 import java.math.BigDecimal;
-import java.net.URL;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -11,6 +11,10 @@ import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseType;
 public record CourseResponseDto(
     Long id,
     CourseType type,
+    String title,
+    String coachFirstName,
+    String coachLastName,
+    String coachEmail,
     String description,
     BigDecimal price,
     LocalDate date,
@@ -18,7 +22,7 @@ public record CourseResponseDto(
     Integer capacity,
     Integer reservedSpots,
     CourseStatus status,
-    URL imageUrl,
+    String imageUrl,
     Long instructorId
 ) {
 }
