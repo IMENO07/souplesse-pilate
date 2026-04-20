@@ -89,7 +89,7 @@ function StudioShowcase() {
   );
 }
 /* ── Courses Grid Section ──────────────────────── */
-function CoursesGrid({ courses, onBook }) {
+function CoursesGrid({ courses, loading, onBook }) {
   return (
     <section id="classes">
       <div className="section-header fade-up">
