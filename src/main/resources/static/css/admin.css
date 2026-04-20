@@ -320,6 +320,8 @@ body {
 }
 .admin-table tbody tr:hover { background: var(--admin-bg); }
 .admin-table tbody tr.row--past { opacity: .45; }
+.admin-table tbody tr.row-selected { background: rgba(44, 74, 90, 0.05); }
+.admin-table tbody tr.row-selected td { border-left: 2px solid var(--ocean); }
 .admin-table td { padding: 16px; vertical-align: middle; }
 .td-title { font-weight: 500; color: var(--deep); margin-bottom: 2px; }
 .td-level { font-size: 10px; letter-spacing: .1em; color: var(--ocean); }

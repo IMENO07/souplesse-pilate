@@ -267,7 +267,7 @@ const CoursesDB = {
   },
 
   exportToXLSX(data) {
-    if (!window.XLSX) return;
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
     const exportData = data.map(c => ({
       'Classe': c.title || c.type,
       'Coach': `${c.coachFirstName || ''} ${c.coachLastName || ''}`,
@@ -281,6 +281,51 @@ const CoursesDB = {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Classes");
     XLSX.writeFile(wb, "souplesse_classes.xlsx");
+  },
+
+  downloadTemplate() {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    const headers = [['Classe', 'Coach Prénom', 'Coach Nom', 'Coach Email', 'Type', 'Description', 'Prix', 'Date', 'Heure', 'Capacité', 'Id Instructeur']];
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modèle Classes");
+    XLSX.writeFile(wb, "modele_import_classes.xlsx");
+  },
+
+  async importFromXLSX(file) {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const ab = e.target.result;
+          const wb = XLSX.read(ab);
+          const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+          let success = 0;
+          for (const r of data) {
+            await this.add({
+              title: r['Classe'],
+              coachFirstName: r['Coach Prénom'],
+              coachLastName: r['Coach Nom'],
+              coachEmail: r['Coach Email'],
+              type: r['Type'] || 'PILATES',
+              description: r['Description'] || 'Imported course',
+              price: r['Prix'],
+              dateTime: `${r['Date']}T${r['Heure']}`,
+              capacity: r['Capacité'],
+              instructorId: r['Id Instructeur']
+            });
+            success++;
+          }
+          alert(`${success} classes importées avec succès.`);
+          resolve(true);
+        } catch (err) {
+          alert("Erreur lors de l'import: " + err.message);
+          reject(err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
   }
 };
 
@@ -335,7 +380,7 @@ const InstructorsDB = {
   },
 
   exportToXLSX(data) {
-    if (!window.XLSX) return;
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
     const exportData = data.map(i => ({
       'Prénom': i.firstName,
       'Nom': i.lastName,
@@ -346,6 +391,44 @@ const InstructorsDB = {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Instructeurs");
     XLSX.writeFile(wb, "souplesse_instructeurs.xlsx");
+  },
+
+  downloadTemplate() {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    const headers = [['Prénom', 'Nom', 'Email']];
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modèle Instructeurs");
+    XLSX.writeFile(wb, "modele_import_instructeurs.xlsx");
+  },
+
+  async importFromXLSX(file) {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const ab = e.target.result;
+          const wb = XLSX.read(ab);
+          const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+          let success = 0;
+          for (const r of data) {
+            await this.add({
+              firstName: r['Prénom'],
+              lastName: r['Nom'],
+              email: r['Email']
+            });
+            success++;
+          }
+          alert(`${success} instructeurs importés.`);
+          resolve(true);
+        } catch (err) {
+          alert("Erreur import: " + err.message);
+          reject(err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
   }
 };
 
@@ -392,7 +475,7 @@ const ClientsDB = {
   },
 
   exportToXLSX(data) {
-    if (!window.XLSX) return;
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
     const exportData = data.map(cl => ({
       'Prénom': cl.firstName,
       'Nom': cl.lastName,
@@ -404,6 +487,45 @@ const ClientsDB = {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Réservations");
     XLSX.writeFile(wb, "souplesse_reservations.xlsx");
+  },
+
+  downloadTemplate() {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    const headers = [['Prénom', 'Nom', 'Email', 'Id Cours']];
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modèle Réservations");
+    XLSX.writeFile(wb, "modele_import_reservations.xlsx");
+  },
+
+  async importFromXLSX(file) {
+    if (!window.XLSX) return alert("Bibliothèque XLSX non chargée.");
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const ab = e.target.result;
+          const wb = XLSX.read(ab);
+          const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+          let success = 0;
+          for (const r of data) {
+            await this.add({
+              firstName: r['Prénom'],
+              lastName: r['Nom'],
+              email: r['Email'],
+              courseId: r['Id Cours']
+            });
+            success++;
+          }
+          alert(`${success} réservations importées.`);
+          resolve(true);
+        } catch (err) {
+          alert("Erreur import: " + err.message);
+          reject(err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
   }
 };
 const ContentDB = {

@@ -402,3 +402,20 @@ select option {
     background-color: var(--deep);
     color: var(--cream);
 }
+
+/* ── Table Selection ────────────────────────────── */
+.row-selected {
+    background-color: rgba(107, 158, 175, 0.08) !important;
+}
+.row-selected td {
+    color: var(--ocean);
+}
+.admin-table input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: var(--ocean);
+    width: 16px;
+    height: 16px;
+}
+.admin-table tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}

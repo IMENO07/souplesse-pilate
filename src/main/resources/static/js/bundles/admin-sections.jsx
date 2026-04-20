@@ -564,6 +564,28 @@ function CoursesTable({ courses, onEdit, onDelete }) {
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortConfig, setSortConfig] = React.useState({ key: 'date', direction: 'desc' });
+  const [selectedIds, setSelectedIds] = React.useState(new Set());
+  const courseImportRef = React.useRef(null);
+
+  // Reset selection when data or filters change
+  React.useEffect(() => {
+    setSelectedIds(new Set());
+  }, [courses, search, category]);
+
+  const toggleSelectAll = (filteredData) => {
+    if (selectedIds.size === filteredData.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredData.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -613,21 +635,40 @@ function CoursesTable({ courses, onEdit, onDelete }) {
 
   return (
     <div className="admin-card" id="coursesSection" style={{ padding: 0 }}>
-      {/* TOOLBAR */}
+      {/* ACTION BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <input 
+          type="file" 
+          ref={courseImportRef} 
+          style={{ display: 'none' }} 
+          accept=".xlsx,.xls,.csv" 
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              window.CoursesDB.importFromXLSX(e.target.files[0]).then(() => window.location.reload());
+            }
+          }}
+        />
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <button className="ui-btn ui-btn--ghost" onClick={() => courseImportRef.current.click()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Import
           </button>
-          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <button className="ui-btn ui-btn--ghost" onClick={() => window.CoursesDB.downloadTemplate()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download Template
           </button>
         </div>
-        <button className="ui-btn ui-btn--ghost" onClick={() => window.CoursesDB.exportToXLSX(filtered)} style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+        <button className="ui-btn ui-btn--ghost" 
+          onClick={() => {
+            const dataToExport = selectedIds.size > 0 
+              ? filtered.filter(f => selectedIds.has(f.id))
+              : filtered;
+            window.CoursesDB.exportToXLSX(dataToExport);
+          }} 
+          style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center', color: selectedIds.size > 0 ? 'var(--ocean)' : 'inherit' }}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          XLSX Export
+          {selectedIds.size > 0 ? `Export (${selectedIds.size})` : 'XLSX Export'}
         </button>
       </div>
 
@@ -660,6 +701,13 @@ function CoursesTable({ courses, onEdit, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onChange={() => toggleSelectAll(filtered)}
+                    />
+                  </th>
                   <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th onClick={() => handleSort('coachFirstName')} style={{ cursor: 'pointer' }}>Coach {sortConfig.key === 'coachFirstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>Date &amp; Heure {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
@@ -670,7 +718,7 @@ function CoursesTable({ courses, onEdit, onDelete }) {
               </thead>
               <tbody>
                 {currentData.length === 0 ? (
-                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
                 ) : currentData.map(c => {
                   const spots = CoursesDB.spotsLeft(c);
                   const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
@@ -680,7 +728,14 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                   const fillPct = Math.round(((c.reservedSpots || 0) / c.capacity) * 100);
 
                   return (
-                    <tr key={c.id} className={isPast ? 'row--past' : ''}>
+                    <tr key={c.id} className={`${isPast ? 'row--past' : ''} ${selectedIds.has(c.id) ? 'row-selected' : ''}`}>
+                      <td>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.has(c.id)}
+                          onChange={() => toggleSelect(c.id)}
+                        />
+                      </td>
                       <td><div className="td-title">{c.title || c.description || c.type}</div></td>
                       <td><div className="td-coach">{c.coachFirstName || ''} {c.coachLastName || ''}</div></td>
                       <td><div>{dateStr}</div><div className="td-time">{timeStr}</div></td>
@@ -795,6 +850,28 @@ function ClientsTable({ clients, onEdit, onDelete }) {
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortConfig, setSortConfig] = React.useState({ key: 'bookedAt', direction: 'desc' });
+  const [selectedIds, setSelectedIds] = React.useState(new Set());
+  const clientImportRef = React.useRef(null);
+
+  // Reset selection when data or filters change
+  React.useEffect(() => {
+    setSelectedIds(new Set());
+  }, [clients, search, category]);
+
+  const toggleSelectAll = (filteredData) => {
+    if (selectedIds.size === filteredData.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredData.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -839,21 +916,40 @@ function ClientsTable({ clients, onEdit, onDelete }) {
 
   return (
     <div className="admin-card" style={{ padding: 0 }}>
-      {/* TOOLBAR */}
+      {/* ACTION BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <input 
+          type="file" 
+          ref={clientImportRef} 
+          style={{ display: 'none' }} 
+          accept=".xlsx,.xls,.csv" 
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              window.ClientsDB.importFromXLSX(e.target.files[0]).then(() => window.location.reload());
+            }
+          }}
+        />
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <button className="ui-btn ui-btn--ghost" onClick={() => clientImportRef.current.click()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Import
           </button>
-          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <button className="ui-btn ui-btn--ghost" onClick={() => window.ClientsDB.downloadTemplate()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download Template
           </button>
         </div>
-        <button className="ui-btn ui-btn--ghost" onClick={() => window.ClientsDB.exportToXLSX(filtered)} style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+        <button className="ui-btn ui-btn--ghost" 
+          onClick={() => {
+            const dataToExport = selectedIds.size > 0 
+              ? filtered.filter(f => selectedIds.has(f.id))
+              : filtered;
+            window.ClientsDB.exportToXLSX(dataToExport);
+          }} 
+          style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center', color: selectedIds.size > 0 ? 'var(--ocean)' : 'inherit' }}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          XLSX Export
+          {selectedIds.size > 0 ? `Export (${selectedIds.size})` : 'XLSX Export'}
         </button>
       </div>
 
@@ -885,6 +981,13 @@ function ClientsTable({ clients, onEdit, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onChange={() => toggleSelectAll(filtered)}
+                    />
+                  </th>
                   <th onClick={() => handleSort('firstName')} style={{ cursor: 'pointer' }}>Nom {sortConfig.key === 'firstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th onClick={() => handleSort('courseType')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'courseType' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
@@ -894,9 +997,16 @@ function ClientsTable({ clients, onEdit, onDelete }) {
               </thead>
               <tbody>
                 {currentData.length === 0 ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
                 ) : currentData.map(cl => (
-                  <tr key={cl.id}>
+                  <tr key={cl.id} className={selectedIds.has(cl.id) ? 'row-selected' : ''}>
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.has(cl.id)}
+                        onChange={() => toggleSelect(cl.id)}
+                      />
+                    </td>
                     <td><div className="td-title">{cl.firstName} {cl.lastName}</div></td>
                     <td><div className="td-email">{cl.email}</div></td>
                     <td><div className="td-coach">{cl.courseType || 'Classe #' + cl.courseId}</div></td>
@@ -945,7 +1055,29 @@ function ClientsTable({ clients, onEdit, onDelete }) {
 function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
   const [search, setSearch] = React.useState('');
   const [page, setPage] = React.useState(1);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [selectedIds, setSelectedIds] = React.useState(new Set());
+  const instructorImportRef = React.useRef(null);
+
+  // Reset selection when data or filters change
+  React.useEffect(() => {
+    setSelectedIds(new Set());
+  }, [instructors, search]);
+
+  const toggleSelectAll = (filteredData) => {
+    if (selectedIds.size === filteredData.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredData.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   const filtered = instructors.filter(i => 
     `${i.firstName} ${i.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
@@ -970,33 +1102,79 @@ function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
   };
 
   return (
-    <div className="admin-card">
-      <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ position: 'relative', width: '300px' }}>
+    <div className="admin-card" style={{ padding: 0 }}>
+      {/* ACTION BAR */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <input 
+          type="file" 
+          ref={instructorImportRef} 
+          style={{ display: 'none' }} 
+          accept=".xlsx,.xls,.csv" 
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              window.InstructorsDB.importFromXLSX(e.target.files[0]).then(() => window.location.reload());
+            }
+          }}
+        />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="ui-btn ui-btn--ghost" onClick={() => instructorImportRef.current.click()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button className="ui-btn ui-btn--ghost" onClick={() => window.InstructorsDB.downloadTemplate()} style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+        </div>
+        <button className="ui-btn ui-btn--ghost" 
+          onClick={() => {
+            const dataToExport = selectedIds.size > 0 
+              ? filtered.filter(f => selectedIds.has(f.id))
+              : filtered;
+            window.InstructorsDB.exportToXLSX(dataToExport);
+          }} 
+          style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center', color: selectedIds.size > 0 ? 'var(--ocean)' : 'inherit' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          {selectedIds.size > 0 ? `Export (${selectedIds.size})` : 'XLSX Export'}
+        </button>
+      </div>
+
+      {/* FILTER BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px', gap: '10px' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="ui-input" style={{ width: '160px', paddingLeft: '30px', fontSize: '13px' }} disabled>
+            <option value="">Tous les Rôles</option>
+            <option value="COACH">Coach</option>
+          </select>
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </div>
+        <div style={{ position: 'relative' }}>
           <input 
             type="text" 
-            placeholder="Rechercher un instructeur..." 
+            placeholder="Search..." 
             className="ui-input" 
-            style={{ paddingLeft: '32px' }}
+            style={{ width: '250px', paddingLeft: '30px', fontSize: '13px' }}
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
-          <svg style={{ position: 'absolute', left: 10, top: 12, color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg style={{ position: 'absolute', left: 10, top: 10, color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </div>
-        <button className="ui-btn ui-btn--ghost" onClick={() => window.InstructorsDB.exportToXLSX(filtered)} style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Exporter XLSX
-        </button>
       </div>
 
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
+              <th style={{ width: '40px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                  onChange={() => toggleSelectAll(filtered)}
+                />
+              </th>
               <th>Nom</th>
               <th>Email</th>
               <th>Date d'Inscription</th>
@@ -1005,12 +1183,19 @@ function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '60px' }}><Spinner /></td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '60px' }}><Spinner /></td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '60px', color: '#888' }}>Aucun instructeur trouvé.</td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '60px', color: '#888' }}>Aucun instructeur trouvé.</td></tr>
             ) : (
               currentData.map(inst => (
-                <tr key={inst.id}>
+                <tr key={inst.id} className={selectedIds.has(inst.id) ? 'row-selected' : ''}>
+                  <td>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.has(inst.id)}
+                      onChange={() => toggleSelect(inst.id)}
+                    />
+                  </td>
                   <td><div className="td-title">{inst.firstName} {inst.lastName}</div></td>
                   <td><div className="td-email">{inst.email}</div></td>
                   <td><div className="td-time">{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString('fr-FR') : '—'}</div></td>
@@ -1027,12 +1212,26 @@ function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
         </table>
       </div>
 
-      <div style={{ padding: '16px 28px', borderTop: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '12px', color: '#888' }}>{filtered.length} instructeurs au total</div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button className="ui-btn ui-btn--ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Précédent</button>
-          <span style={{ fontSize: '12px', fontWeight: '500' }}>Page {page} / {totalPages}</span>
-          <button className="ui-btn ui-btn--ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant</button>
+      {/* PAGINATION */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#fafafa', fontSize: '13px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <button className="ui-btn ui-btn--ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>&lt; Previous</button>
+          <span style={{ padding: '6px 12px', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+          <button className="ui-btn ui-btn--ghost" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>Next &gt;</button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <select className="ui-input" style={{ width: '60px', padding: '4px', fontSize: '13px' }} value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <span style={{ color: '#888' }}>Rows per page</span>
+        </div>
+
+        <div style={{ color: '#888' }}>
+          Showing {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
         </div>
       </div>
     </div>
@@ -1044,14 +1243,12 @@ function InstructorForm({ instructor, onSave, onCancel }) {
   const [firstName, setFirstName] = React.useState(instructor?.firstName || '');
   const [lastName, setLastName] = React.useState(instructor?.lastName || '');
   const [email, setEmail] = React.useState(instructor?.email || '');
-  const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!firstName || !lastName || !email) return setError('Veuillez remplir tous les champs obligatoires.');
-    if (!instructor && !password) return setError('Le mot de passe est obligatoire pour un nouveau compte.');
 
     setLoading(true);
     setError('');
@@ -1060,7 +1257,7 @@ function InstructorForm({ instructor, onSave, onCancel }) {
         await window.InstructorsDB.update(instructor.id, { firstName, lastName, email });
         onSave('Instructeur mis à jour.');
       } else {
-        await window.InstructorsDB.add({ firstName, lastName, email, password });
+        await window.InstructorsDB.add({ firstName, lastName, email });
         onSave('Instructeur créé avec succès.');
       }
     } catch (e) {
@@ -1077,10 +1274,6 @@ function InstructorForm({ instructor, onSave, onCancel }) {
         <Input label="Nom" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Amira" />
       </div>
       <Input label="Adresse Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="sofia@souplesse.dz" />
-      
-      {!instructor && (
-        <Input label="Mot de passe" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" hint="Au moins 8 caractères." />
-      )}
 
       {error && <p className="ui-form-error">{error}</p>}
 

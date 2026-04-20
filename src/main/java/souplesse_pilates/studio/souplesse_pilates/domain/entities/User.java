@@ -3,6 +3,7 @@ package souplesse_pilates.studio.souplesse_pilates.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.UserRole;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = "email")})
@@ -30,4 +31,12 @@ public class User {
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
