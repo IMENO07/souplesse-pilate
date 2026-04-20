@@ -265,6 +265,23 @@ const CoursesDB = {
   spotsLeft(course) {
     return course.capacity - (course.reservedSpots || 0); 
   },
+
+  exportToXLSX(data) {
+    if (!window.XLSX) return;
+    const exportData = data.map(c => ({
+      'Classe': c.title || c.type,
+      'Coach': `${c.coachFirstName || ''} ${c.coachLastName || ''}`,
+      'Date': c.date,
+      'Heure': c.time,
+      'Prix': c.price,
+      'Capacité': c.capacity,
+      'Réservés': c.reservedSpots || 0
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Classes");
+    XLSX.writeFile(wb, "souplesse_classes.xlsx");
+  }
 };
 
 const InstructorsDB = {
@@ -275,6 +292,60 @@ const InstructorsDB = {
       console.error('Failed to load instructors', e);
       return [];
     }
+  },
+  
+  async add(data) {
+    try {
+      await api.post('/admin/instructors', {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password || 'Pilates2024!', // Default if not provided
+        role: 'INSTRUCTOR'
+      });
+      return true;
+    } catch (e) {
+      console.error('Failed to add instructor', e);
+      throw e;
+    }
+  },
+
+  async update(id, data) {
+    try {
+      await api.put(`/admin/instructors/${id}`, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email
+      });
+      return true;
+    } catch (e) {
+      console.error('Failed to update instructor', e);
+      throw e;
+    }
+  },
+
+  async remove(id) {
+    try {
+      await api.delete(`/admin/instructors/${id}`);
+      return true;
+    } catch (e) {
+      console.error('Failed to delete instructor', e);
+      throw e;
+    }
+  },
+
+  exportToXLSX(data) {
+    if (!window.XLSX) return;
+    const exportData = data.map(i => ({
+      'Prénom': i.firstName,
+      'Nom': i.lastName,
+      'Email': i.email,
+      'Date Inscription': i.createdAt ? new Date(i.createdAt).toLocaleDateString() : '—'
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Instructeurs");
+    XLSX.writeFile(wb, "souplesse_instructeurs.xlsx");
   }
 };
 
@@ -319,7 +390,23 @@ const ClientsDB = {
       throw e;
     }
   },
-};const ContentDB = {
+
+  exportToXLSX(data) {
+    if (!window.XLSX) return;
+    const exportData = data.map(cl => ({
+      'Prénom': cl.firstName,
+      'Nom': cl.lastName,
+      'Email': cl.email,
+      'Classe': cl.courseType || 'Classe #' + cl.courseId,
+      'Date Réservation': cl.bookedAt ? new Date(cl.bookedAt).toLocaleDateString() : '—'
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Réservations");
+    XLSX.writeFile(wb, "souplesse_reservations.xlsx");
+  }
+};
+const ContentDB = {
   async getStudioImages() {
     try {
       const data = await api.get('/api/content/studio-images');
@@ -339,3 +426,9 @@ const ClientsDB = {
     } catch (e) { return []; }
   }
 };
+
+// Global Exports
+window.CoursesDB = CoursesDB;
+window.InstructorsDB = InstructorsDB;
+window.ClientsDB = ClientsDB;
+window.ContentDB = ContentDB;

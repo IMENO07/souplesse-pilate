@@ -172,7 +172,9 @@ function AdminCharts() {
 function LogArchiveDialog({ onClose }) {
   const [logs, setLogs] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [filter, setFilter] = React.useState('');
+  const [search, setSearch] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const rowsPerPage = 15;
 
   React.useEffect(() => {
     const fetchArchive = async () => {
@@ -194,71 +196,114 @@ function LogArchiveDialog({ onClose }) {
   }, []);
 
   const filteredLogs = logs.filter(l => 
-    l.message.toLowerCase().includes(filter.toLowerCase()) ||
-    l.type.toLowerCase().includes(filter.toLowerCase())
+    l.message.toLowerCase().includes(search.toLowerCase()) ||
+    l.type.toLowerCase().includes(search.toLowerCase()) ||
+    l.timestamp.toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredLogs.length / rowsPerPage) || 1;
+  const currentData = filteredLogs.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleExport = () => {
+    if (!window.XLSX) return;
+    const ws = XLSX.utils.json_to_sheet(filteredLogs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Logs Archive");
+    XLSX.writeFile(wb, `souplesse_logs_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   return (
     <div className="ui-modal-overlay" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(10, 25, 47, 0.85)', backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
       padding: '40px'
     }}>
       <div className="admin-card" style={{ 
-        width: '100%', maxWidth: '900px', maxHeight: '85vh', 
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '0 24px 48px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)'
+        width: '100%', maxWidth: '1000px', maxHeight: '90vh', 
+        display: 'flex', flexDirection: 'column', background: 'white'
       }}>
-        <div className="admin-card-header" style={{ 
-          background: 'var(--deep)', borderBottom: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', justifyContent: 'space-between', padding: '20px 28px'
-        }}>
+        <div className="admin-card-header" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="2">
               <path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>
             </svg>
-            <span className="admin-card-title" style={{ color: 'white' }}>Archives des Activités Système</span>
+            <span className="admin-card-title">Archive Complète des Activités</span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.6 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--ocean)', cursor: 'pointer', opacity: 0.5 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
         
-        <div style={{ padding: '16px 28px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <input 
-            type="text" 
-            placeholder="Rechercher dans les archives (ex: DELETE, Réservation...)" 
-            className="ui-input" 
-            style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-          />
+        <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ position: 'relative', width: '300px' }}>
+            <input 
+              type="text" 
+              placeholder="Rechercher un log..." 
+              className="ui-input" 
+              style={{ paddingLeft: '32px' }}
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+            />
+            <svg style={{ position: 'absolute', left: 10, top: 12, color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <button className="ui-btn ui-btn--ghost" onClick={handleExport} style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Exporter XLSX
+          </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', background: '#0a192f', padding: '20px 28px' }}>
-          {loading ? (
-            <div style={{ color: 'var(--sand)', opacity: 0.5, textAlign: 'center', padding: 40 }}>Chargement des archives...</div>
-          ) : filteredLogs.length === 0 ? (
-            <div style={{ color: 'var(--sand)', opacity: 0.5, textAlign: 'center', padding: 40 }}>Aucune correspondance trouvée.</div>
-          ) : (
-            filteredLogs.map((log, i) => (
-              <div key={i} style={{ 
-                marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.03)',
-                fontFamily: 'monospace', fontSize: 13, display: 'flex', gap: 16 
-              }}>
-                <span style={{ color: 'rgba(255,255,255,0.2)', minWidth: 140 }}>[{log.timestamp}]</span>
-                <span style={{ color: 'var(--gold)', minWidth: 80, fontWeight: 'bold' }}>{log.type}</span>
-                <span style={{ color: 'rgba(255,255,255,0.7)' }}>{log.message}</span>
-              </div>
-            ))
-          )}
+        <div className="admin-table-wrap" style={{ flex: 1, overflowY: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ width: '180px' }}>Horodatage</th>
+                <th style={{ width: '120px' }}>Type</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="3" style={{ textAlign: 'center', padding: '100px', color: '#888' }}>Chargement des données...</td></tr>
+              ) : currentData.length === 0 ? (
+                <tr><td colSpan="3" style={{ textAlign: 'center', padding: '100px', color: '#888' }}>Aucun log trouvé.</td></tr>
+              ) : (
+                currentData.map((log, i) => (
+                  <tr key={i}>
+                    <td><div className="td-time">{log.timestamp}</div></td>
+                    <td>
+                      <span style={{ 
+                        fontSize: '9px', fontWeight: 'bold', letterSpacing: '0.5px',
+                        padding: '4px 8px', borderRadius: '4px',
+                        background: log.type === 'DELETE' ? '#FEE2E2' : log.type === 'UPDATE' ? '#FEF3C7' : '#E0F2FE',
+                        color: log.type === 'DELETE' ? '#EF4444' : log.type === 'UPDATE' ? '#D97706' : '#0284C7'
+                      }}>
+                        {log.type}
+                      </span>
+                    </td>
+                    <td><div className="td-title" style={{ fontWeight: 'normal', fontSize: '13px' }}>{log.message}</div></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
         
-        <div style={{ padding: '16px 28px', background: 'var(--deep)', textAlign: 'right', fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-          {filteredLogs.length} entrées affichées
+        <div style={{ padding: '16px 28px', borderTop: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '12px', color: '#888' }}>
+            Affichage de {((page-1) * rowsPerPage) + 1} à {Math.min(page * rowsPerPage, filteredLogs.length)} sur {filteredLogs.length} logs
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="ui-btn ui-btn--ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 12px', fontSize: '12px' }}>Précédent</button>
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>Page {page} / {totalPages}</span>
+            <button className="ui-btn ui-btn--ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 12px', fontSize: '12px' }}>Suivant</button>
+          </div>
         </div>
       </div>
     </div>
@@ -514,26 +559,100 @@ function CourseForm({ editingCourse, onSave, onCancel }) {
 }
 /* ── Courses Table Section ──────────────────────── */
 function CoursesTable({ courses, onEdit, onDelete }) {
+  const [search, setSearch] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [sortConfig, setSortConfig] = React.useState({ key: 'date', direction: 'desc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
+
+  const sortedCourses = React.useMemo(() => {
+    let sortable = [...(courses || [])];
+    if (sortConfig !== null) {
+      sortable.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (sortConfig.key === 'date') {
+          valA = a.date && a.time ? new Date(`${a.date}T${a.time}`) : new Date(0);
+          valB = b.date && b.time ? new Date(`${b.date}T${b.time}`) : new Date(0);
+        } else if (sortConfig.key === 'price') {
+          valA = a.price || 0; valB = b.price || 0;
+        } else if (sortConfig.key === 'title') {
+          valA = a.title?.toLowerCase() || ''; valB = b.title?.toLowerCase() || '';
+        } else if (sortConfig.key === 'capacity') {
+          valA = a.capacity || 0; valB = b.capacity || 0;
+        }
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [courses, sortConfig]);
+
+  const filtered = sortedCourses.filter(c => {
+    const term = search.toLowerCase();
+    const matchesSearch = c.title?.toLowerCase().includes(term) || 
+                          c.type?.toLowerCase().includes(term) ||
+                          c.coachFirstName?.toLowerCase().includes(term) ||
+                          c.coachLastName?.toLowerCase().includes(term);
+    const matchesCat = category ? c.type === category : true;
+    return matchesSearch && matchesCat;
+  });
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const currentData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const isEmpty = !courses || courses.length === 0;
 
   return (
-    <div className="admin-card" id="coursesSection">
-      <div className="admin-card-header">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
-          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
-        </svg>
-        <span className="admin-card-title">Toutes les Classes</span>
+    <div className="admin-card" id="coursesSection" style={{ padding: 0 }}>
+      {/* TOOLBAR */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+        </div>
+        <button className="ui-btn ui-btn--ghost" onClick={() => window.CoursesDB.exportToXLSX(filtered)} style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          XLSX Export
+        </button>
       </div>
+
+      {/* SEARCH BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px', gap: '10px' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="ui-input" style={{ width: '160px', paddingLeft: '30px' }} value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">Category</option>
+            {Array.from(new Set(courses.map(c => c.type).filter(Boolean))).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </div>
+        
+        <div style={{ position: 'relative' }}>
+          <input type="text" className="ui-input" style={{ width: '250px', paddingLeft: '30px' }} placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+
       <div className="admin-card-body" style={{ padding: 0 }}>
         {isEmpty && (
-          <div className="empty-state" style={{ display: 'flex' }}>
-            <div className="empty-state-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </div>
-            <p>Aucune classe créée.<br/>Ajoutez votre première séance.</p>
+          <div className="empty-state" style={{ display: 'flex', padding: '40px' }}>
+            <p>Aucune classe créée.</p>
           </div>
         )}
         {!isEmpty && (
@@ -541,16 +660,18 @@ function CoursesTable({ courses, onEdit, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Classe</th>
-                  <th>Coach</th>
-                  <th>Date &amp; Heure</th>
-                  <th>Prix</th>
-                  <th>Remplissage</th>
+                  <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('coachFirstName')} style={{ cursor: 'pointer' }}>Coach {sortConfig.key === 'coachFirstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>Date &amp; Heure {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('price')} style={{ cursor: 'pointer' }}>Prix {sortConfig.key === 'price' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('capacity')} style={{ cursor: 'pointer' }}>Remplissage {sortConfig.key === 'capacity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {courses.map(c => {
+                {currentData.length === 0 ? (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                ) : currentData.map(c => {
                   const spots = CoursesDB.spotsLeft(c);
                   const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
                   const dateStr = dt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -561,7 +682,7 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                   return (
                     <tr key={c.id} className={isPast ? 'row--past' : ''}>
                       <td><div className="td-title">{c.title || c.description || c.type}</div></td>
-                      <td><div className="td-coach">{c.coachFirstName || 'Instructeur'} {c.coachLastName || ''}</div></td>
+                      <td><div className="td-coach">{c.coachFirstName || ''} {c.coachLastName || ''}</div></td>
                       <td><div>{dateStr}</div><div className="td-time">{timeStr}</div></td>
                       <td><div className="td-price">{c.price ? c.price.toLocaleString('fr-FR') + ' DA' : '—'}</div></td>
                       <td>
@@ -570,19 +691,8 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <button className="admin-btn-edit" onClick={() => onEdit(c)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            Éditer
-                          </button>
-                          <button className="admin-btn-delete" onClick={() => onDelete(c)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                            </svg>
-                            Supprimer
-                          </button>
+                          <button className="admin-btn-edit" onClick={() => onEdit(c)}>Éditer</button>
+                          <button className="admin-btn-delete" onClick={() => onDelete(c)}>Supprimer</button>
                         </div>
                       </td>
                     </tr>
@@ -590,6 +700,30 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                 })}
               </tbody>
             </table>
+            
+            {/* PAGINATION */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#fafafa', fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button className="ui-btn ui-btn--ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>&lt; Previous</button>
+                <span style={{ padding: '6px 12px', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+                <button className="ui-btn ui-btn--ghost" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>Next &gt;</button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <select className="ui-input" style={{ width: '60px', padding: '4px', fontSize: '13px' }} value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span style={{ color: '#888' }}>Rows per page</span>
+              </div>
+
+              <div style={{ color: '#888' }}>
+                Showing {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
+              </div>
+            </div>
+            
           </div>
         )}
       </div>
@@ -655,26 +789,94 @@ function ClientForm({ courses, onSave, onCancel }) {
   );
 }
 /* ── Clients Table Section ──────────────────────── */
-function ClientsTable({ clients, onDelete }) {
+function ClientsTable({ clients, onEdit, onDelete }) {
+  const [search, setSearch] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [sortConfig, setSortConfig] = React.useState({ key: 'bookedAt', direction: 'desc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
+
+  const sortedClients = React.useMemo(() => {
+    let sortable = [...(clients || [])];
+    if (sortConfig !== null) {
+      sortable.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (sortConfig.key === 'firstName') {
+          valA = (a.firstName || '').toLowerCase(); valB = (b.firstName || '').toLowerCase();
+        } else if (sortConfig.key === 'email') {
+          valA = (a.email || '').toLowerCase(); valB = (b.email || '').toLowerCase();
+        } else if (sortConfig.key === 'bookedAt') {
+          valA = new Date(a.bookedAt || 0); valB = new Date(b.bookedAt || 0);
+        }
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [clients, sortConfig]);
+
+  const filtered = sortedClients.filter(cl => {
+    const term = search.toLowerCase();
+    const fullName = `${cl.firstName || ''} ${cl.lastName || ''}`.toLowerCase();
+    const matchesSearch = fullName.includes(term) || (cl.email || '').toLowerCase().includes(term);
+    const matchesCat = category ? cl.courseType === category : true;
+    return matchesSearch && matchesCat;
+  });
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const currentData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const isEmpty = !clients || clients.length === 0;
 
   return (
-    <div className="admin-card">
-      <div className="admin-card-header">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <span className="admin-card-title">Clients &amp; Réservations</span>
+    <div className="admin-card" style={{ padding: 0 }}>
+      {/* TOOLBAR */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+        </div>
+        <button className="ui-btn ui-btn--ghost" onClick={() => window.ClientsDB.exportToXLSX(filtered)} style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          XLSX Export
+        </button>
       </div>
+
+      {/* SEARCH BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px', gap: '10px' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="ui-input" style={{ width: '160px', paddingLeft: '30px' }} value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">Category</option>
+            {Array.from(new Set(clients.map(c => c.courseType).filter(Boolean))).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <input type="text" className="ui-input" style={{ width: '250px', paddingLeft: '30px' }} placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+
       <div className="admin-card-body" style={{ padding: 0 }}>
         {isEmpty && (
-          <div className="empty-state" style={{ display: 'flex' }}>
-            <div className="empty-state-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.5">
-                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-              </svg>
-            </div>
+          <div className="empty-state" style={{ display: 'flex', padding: '40px' }}>
             <p>Aucun client enregistré.</p>
           </div>
         )}
@@ -683,36 +885,210 @@ function ClientsTable({ clients, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Nom</th>
-                  <th>Email</th>
-                  <th>Classe</th>
-                  <th>Date</th>
+                  <th onClick={() => handleSort('firstName')} style={{ cursor: 'pointer' }}>Nom {sortConfig.key === 'firstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('courseType')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'courseType' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('bookedAt')} style={{ cursor: 'pointer' }}>Date {sortConfig.key === 'bookedAt' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map(cl => (
+                {currentData.length === 0 ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                ) : currentData.map(cl => (
                   <tr key={cl.id}>
                     <td><div className="td-title">{cl.firstName} {cl.lastName}</div></td>
                     <td><div className="td-email">{cl.email}</div></td>
                     <td><div className="td-coach">{cl.courseType || 'Classe #' + cl.courseId}</div></td>
                     <td><div className="td-time">{cl.bookedAt ? new Date(cl.bookedAt).toLocaleDateString('fr-FR') : '—'}</div></td>
                     <td>
-                      <button className="admin-btn-delete" onClick={() => onDelete(cl)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                        </svg>
-                        Retirer
-                      </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="admin-btn-edit" onClick={() => onEdit(cl)}>Modifier</button>
+                        <button className="admin-btn-delete" onClick={() => onDelete(cl)}>Retirer</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            {/* PAGINATION */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#fafafa', fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button className="ui-btn ui-btn--ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>&lt; Previous</button>
+                <span style={{ padding: '6px 12px', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+                <button className="ui-btn ui-btn--ghost" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>Next &gt;</button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <select className="ui-input" style={{ width: '60px', padding: '4px', fontSize: '13px' }} value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span style={{ color: '#888' }}>Rows per page</span>
+              </div>
+
+              <div style={{ color: '#888' }}>
+                Showing {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
+              </div>
+            </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+/* ── Instructors Table ──────────────────────────── */
+function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
+  const [search, setSearch] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const rowsPerPage = 10;
+
+  const filtered = instructors.filter(i => 
+    `${i.firstName} ${i.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
+    i.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const currentData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handleExport = () => {
+    if (!window.XLSX) return;
+    const dataToExport = filtered.map(i => ({
+      'Prénom': i.firstName,
+      'Nom': i.lastName,
+      'Email': i.email,
+      'Inscription': i.createdAt ? new Date(i.createdAt).toLocaleDateString() : '—'
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Instructeurs");
+    XLSX.writeFile(wb, `souplesse_instructeurs.xlsx`);
+  };
+
+  return (
+    <div className="admin-card">
+      <div style={{ padding: '16px 28px', borderBottom: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: '300px' }}>
+          <input 
+            type="text" 
+            placeholder="Rechercher un instructeur..." 
+            className="ui-input" 
+            style={{ paddingLeft: '32px' }}
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+          />
+          <svg style={{ position: 'absolute', left: 10, top: 12, color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <button className="ui-btn ui-btn--ghost" onClick={() => window.InstructorsDB.exportToXLSX(filtered)} style={{ fontSize: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exporter XLSX
+        </button>
+      </div>
+
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Date d'Inscription</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '60px' }}><Spinner /></td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '60px', color: '#888' }}>Aucun instructeur trouvé.</td></tr>
+            ) : (
+              currentData.map(inst => (
+                <tr key={inst.id}>
+                  <td><div className="td-title">{inst.firstName} {inst.lastName}</div></td>
+                  <td><div className="td-email">{inst.email}</div></td>
+                  <td><div className="td-time">{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString('fr-FR') : '—'}</div></td>
+                  <td>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                      <button className="admin-btn-edit" onClick={() => onEdit(inst)}>Modifier</button>
+                      <button className="admin-btn-delete" onClick={() => onDelete(inst)}>Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ padding: '16px 28px', borderTop: '1px solid var(--border)', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '12px', color: '#888' }}>{filtered.length} instructeurs au total</div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className="ui-btn ui-btn--ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Précédent</button>
+          <span style={{ fontSize: '12px', fontWeight: '500' }}>Page {page} / {totalPages}</span>
+          <button className="ui-btn ui-btn--ghost" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Suivant</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Instructor Form ────────────────────────────── */
+function InstructorForm({ instructor, onSave, onCancel }) {
+  const [firstName, setFirstName] = React.useState(instructor?.firstName || '');
+  const [lastName, setLastName] = React.useState(instructor?.lastName || '');
+  const [email, setEmail] = React.useState(instructor?.email || '');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!firstName || !lastName || !email) return setError('Veuillez remplir tous les champs obligatoires.');
+    if (!instructor && !password) return setError('Le mot de passe est obligatoire pour un nouveau compte.');
+
+    setLoading(true);
+    setError('');
+    try {
+      if (instructor) {
+        await window.InstructorsDB.update(instructor.id, { firstName, lastName, email });
+        onSave('Instructeur mis à jour.');
+      } else {
+        await window.InstructorsDB.add({ firstName, lastName, email, password });
+        onSave('Instructeur créé avec succès.');
+      }
+    } catch (e) {
+      setError(e.response?.message || "Une erreur est survenue lors de l'enregistrement.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <Input label="Prénom" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Sofia" />
+        <Input label="Nom" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Amira" />
+      </div>
+      <Input label="Adresse Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="sofia@souplesse.dz" />
+      
+      {!instructor && (
+        <Input label="Mot de passe" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" hint="Au moins 8 caractères." />
+      )}
+
+      {error && <p className="ui-form-error">{error}</p>}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+        <Button variant="ghost" type="button" onClick={onCancel}>Annuler</Button>
+        <Button variant="primary" type="submit" loading={loading}>{instructor ? 'Mettre à jour' : 'Créer l\'Instructeur'}</Button>
+      </div>
+    </form>
   );
 }
 
@@ -891,3 +1267,16 @@ function TestimonialAdmin() {
     </div>
   );
 }
+
+// Global Exports
+window.AdminStats = AdminStats;
+window.AdminCharts = AdminCharts;
+window.AdminActivityLogs = AdminActivityLogs;
+window.CourseForm = CourseForm;
+window.CoursesTable = CoursesTable;
+window.ClientForm = ClientForm;
+window.ClientsTable = ClientsTable;
+window.InstructorsTable = InstructorsTable;
+window.InstructorForm = InstructorForm;
+window.ContentAdmin = ContentAdmin;
+window.LogArchiveDialog = LogArchiveDialog;

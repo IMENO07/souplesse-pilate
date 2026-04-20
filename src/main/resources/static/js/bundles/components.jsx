@@ -7,6 +7,7 @@ function AdminSidebar() {
   const items = [
     { id: 'dashboard', path: '/admin/dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>', label: 'Tableau de bord' },
     { id: 'classes', path: '/admin/classes', icon: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', label: 'Toutes les Classes' },
+    { id: 'instructors', path: '/admin/instructors', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>', label: 'Instructeurs' },
     { id: 'clients', path: '/admin/clients', icon: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>', label: 'Clients & Réservations' },
     { id: 'content', path: '/admin/content', icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>', label: 'Contenu du Site' },
   ];

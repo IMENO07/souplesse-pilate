@@ -129,6 +129,76 @@ function AdminClassesPage() {
   );
 }
 
+function AdminInstructorsPage() {
+  const { refresh, showToast } = ReactRouterDOM.useOutletContext();
+  const [instructors, setInstructors] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [editingInstructor, setEditingInstructor] = React.useState(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [deleteConfirm, setDeleteConfirm] = React.useState({ open: false, id: null, name: '' });
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const data = await window.InstructorsDB.getAll();
+    setInstructors(data || []);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  const handleSaved = (msg) => {
+    setIsDialogOpen(false);
+    setEditingInstructor(null);
+    load();
+    showToast(msg);
+  };
+
+  const askDelete = (i) => setDeleteConfirm({ open: true, id: i.id, name: `${i.firstName} ${i.lastName}` });
+  
+  const executeDelete = async () => {
+    try {
+      await window.InstructorsDB.remove(deleteConfirm.id);
+      load();
+      showToast('Instructeur supprimé.');
+    } catch (e) { showToast('Erreur.'); }
+    setDeleteConfirm({ open: false, id: null, name: '' });
+  };
+
+  return (
+    <>
+      <div className="admin-header">
+        <h1 className="admin-header-title">Instructeurs</h1>
+        <button className="ui-btn ui-btn--primary ui-btn--sm" onClick={() => { setEditingInstructor(null); setIsDialogOpen(true); }}>+ Ajouter Instructeur</button>
+      </div>
+
+      <div className="admin-layout" id="instructorsSection">
+        <InstructorsTable instructors={instructors} loading={loading} onEdit={(i) => { setEditingInstructor(i); setIsDialogOpen(true); }} onDelete={askDelete} />
+      </div>
+
+      <Dialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        <DialogHeader>
+          <DialogTitle>{editingInstructor ? 'Modifier l\'Instructeur' : 'Ajouter un Instructeur'}</DialogTitle>
+          <DialogDescription>{editingInstructor ? 'Mettez à jour les informations du membre de l\'équipe.' : 'Créez un nouveau compte pour un instructeur du studio.'}</DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <InstructorForm instructor={editingInstructor} onSave={handleSaved} onCancel={() => setIsDialogOpen(false)} />
+        </DialogBody>
+      </Dialog>
+
+      <Dialog isOpen={deleteConfirm.open} onClose={() => setDeleteConfirm({ ...deleteConfirm, open: false })} size="sm">
+        <DialogHeader><DialogTitle>Confirmation</DialogTitle></DialogHeader>
+        <DialogBody>
+          <p style={{ margin: 0, fontSize: 14 }}>Supprimer <strong>{deleteConfirm.name}</strong> ? Cette action est irréversible.</p>
+        </DialogBody>
+        <DialogFooter>
+          <button className="ui-btn ui-btn--ghost" onClick={() => setDeleteConfirm({ ...deleteConfirm, open: false })}>Annuler</button>
+          <button className="ui-btn ui-btn--danger" onClick={executeDelete}>Supprimer</button>
+        </DialogFooter>
+      </Dialog>
+    </>
+  );
+}
+
 function AdminClientsPage() {
   const { clients, courses, refresh, showToast } = ReactRouterDOM.useOutletContext();
   const [isClientDialogOpen, setIsClientDialogOpen] = React.useState(false);

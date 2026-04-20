@@ -67,6 +67,11 @@ public class TestingSeeder implements CommandLineRunner, SeedService {
         instructors.add(buildInstructor("chloe@souplesse.dz",  "Chloe",  "Martin"));
         instructors.add(buildInstructor("david@souplesse.dz",  "David",  "Kim"));
         instructors.add(buildInstructor("emma@souplesse.dz",   "Emma",   "Watson"));
+        instructors.add(buildInstructor("felix@souplesse.dz",  "Felix",  "Gomez"));
+        instructors.add(buildInstructor("gina@souplesse.dz",   "Gina",   "Carano"));
+        instructors.add(buildInstructor("hugo@souplesse.dz",   "Hugo",   "Boss"));
+        instructors.add(buildInstructor("iris@souplesse.dz",   "Iris",   "West"));
+        instructors.add(buildInstructor("jack@souplesse.dz",   "Jack",   "Reacher"));
 
         // ── 4. Courses (15 total: past, available, full) ──────────────────────────
         log.info("Creating TESTING courses...");

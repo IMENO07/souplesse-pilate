@@ -10,6 +10,7 @@ const router = createHashRouter([
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: "dashboard", element: <AdminDashboardPage /> },
       { path: "classes", element: <AdminClassesPage /> },
+      { path: "instructors", element: <AdminInstructorsPage /> },
       { path: "clients", element: <AdminClientsPage /> },
       { path: "content", element: <AdminContentPage /> }
     ]

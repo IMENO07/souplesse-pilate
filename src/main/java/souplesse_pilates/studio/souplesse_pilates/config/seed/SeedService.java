@@ -8,11 +8,11 @@ import souplesse_pilates.studio.souplesse_pilates.repositories.UserRepository;
 public interface SeedService {
 
     default void createAdminIfNotExists(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        if (!userRepository.existsByEmail("admin@fitbook.com")) {
+        if (!userRepository.existsByEmail("admin@souplesse.dz")) {
             userRepository.save(User.builder()
                     .firstName("Admin")
-                    .lastName("Fitbook")
-                    .email("admin@fitbook.com")
+                    .lastName("Souplesse")
+                    .email("admin@souplesse.dz")
                     .password(passwordEncoder.encode("admin123"))
                     .role(UserRole.ADMIN)
                     .build());
