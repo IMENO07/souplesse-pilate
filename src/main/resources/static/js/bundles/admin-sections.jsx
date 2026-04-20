@@ -1,32 +1,4 @@
-/* ── Admin Stats Section ───────────────────────── */
-function AdminStats({ courses, clients }) {
-  const now = new Date();
-  const active = courses.filter(c => {
-    const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
-    return dt > now;
-  });
-  const booked = courses.reduce((s, c) => s + (c.reservedSpots || 0), 0);
 
-  return (
-    <div className="stats-row">
-      <div className="stat-card">
-        <div className="stat-card-label">Classes Actives</div>
-        <div className="stat-card-value">{active.length}</div>
-        <div className="stat-card-sub">à venir</div>
-      </div>
-      <div className="stat-card">
-        <div className="stat-card-label">Réservations Totales</div>
-        <div className="stat-card-value">{booked}</div>
-        <div className="stat-card-sub">toutes classes</div>
-      </div>
-      <div className="stat-card">
-        <div className="stat-card-label">Clients Enregistrés</div>
-        <div className="stat-card-value">{clients.length}</div>
-        <div className="stat-card-sub">dans le système</div>
-      </div>
-    </div>
-  );
-}
 /* ── Course Form Section ───────────────────────── */
 function CourseForm({ editingCourse, onSave, onCancel }) {
   const [title, setTitle] = React.useState('');
@@ -208,26 +180,100 @@ function CourseForm({ editingCourse, onSave, onCancel }) {
 }
 /* ── Courses Table Section ──────────────────────── */
 function CoursesTable({ courses, onEdit, onDelete }) {
+  const [search, setSearch] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [sortConfig, setSortConfig] = React.useState({ key: 'date', direction: 'desc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
+
+  const sortedCourses = React.useMemo(() => {
+    let sortable = [...(courses || [])];
+    if (sortConfig !== null) {
+      sortable.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (sortConfig.key === 'date') {
+          valA = a.date && a.time ? new Date(`${a.date}T${a.time}`) : new Date(0);
+          valB = b.date && b.time ? new Date(`${b.date}T${b.time}`) : new Date(0);
+        } else if (sortConfig.key === 'price') {
+          valA = a.price || 0; valB = b.price || 0;
+        } else if (sortConfig.key === 'title') {
+          valA = a.title?.toLowerCase() || ''; valB = b.title?.toLowerCase() || '';
+        } else if (sortConfig.key === 'capacity') {
+          valA = a.capacity || 0; valB = b.capacity || 0;
+        }
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [courses, sortConfig]);
+
+  const filtered = sortedCourses.filter(c => {
+    const term = search.toLowerCase();
+    const matchesSearch = c.title?.toLowerCase().includes(term) || 
+                          c.type?.toLowerCase().includes(term) ||
+                          c.coachFirstName?.toLowerCase().includes(term) ||
+                          c.coachLastName?.toLowerCase().includes(term);
+    const matchesCat = category ? c.type === category : true;
+    return matchesSearch && matchesCat;
+  });
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const currentData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const isEmpty = !courses || courses.length === 0;
 
   return (
-    <div className="admin-card" id="coursesSection">
-      <div className="admin-card-header">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
-          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
-        </svg>
-        <span className="admin-card-title">Toutes les Classes</span>
+    <div className="admin-card" id="coursesSection" style={{ padding: 0 }}>
+      {/* TOOLBAR */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+        </div>
+        <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          XLSX tools
+        </button>
       </div>
+
+      {/* SEARCH BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px', gap: '10px' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="ui-input" style={{ width: '160px', paddingLeft: '30px' }} value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">Category</option>
+            {Array.from(new Set(courses.map(c => c.type).filter(Boolean))).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </div>
+        
+        <div style={{ position: 'relative' }}>
+          <input type="text" className="ui-input" style={{ width: '250px', paddingLeft: '30px' }} placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+
       <div className="admin-card-body" style={{ padding: 0 }}>
         {isEmpty && (
-          <div className="empty-state" style={{ display: 'flex' }}>
-            <div className="empty-state-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </div>
-            <p>Aucune classe créée.<br/>Ajoutez votre première séance.</p>
+          <div className="empty-state" style={{ display: 'flex', padding: '40px' }}>
+            <p>Aucune classe créée.</p>
           </div>
         )}
         {!isEmpty && (
@@ -235,17 +281,19 @@ function CoursesTable({ courses, onEdit, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Classe</th>
-                  <th>Coach</th>
-                  <th>Date &amp; Heure</th>
-                  <th>Prix</th>
-                  <th>Remplissage</th>
+                  <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('coachFirstName')} style={{ cursor: 'pointer' }}>Coach {sortConfig.key === 'coachFirstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>Date &amp; Heure {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('price')} style={{ cursor: 'pointer' }}>Prix {sortConfig.key === 'price' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('capacity')} style={{ cursor: 'pointer' }}>Remplissage {sortConfig.key === 'capacity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {courses.map(c => {
-                  const spots = CoursesDB.spotsLeft(c);
+                {currentData.length === 0 ? (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                ) : currentData.map(c => {
+                  const spots = window.CoursesDB ? window.CoursesDB.spotsLeft(c) : (c.capacity - (c.reservedSpots || 0));
                   const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
                   const dateStr = dt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
                   const timeStr = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -255,7 +303,7 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                   return (
                     <tr key={c.id} className={isPast ? 'row--past' : ''}>
                       <td><div className="td-title">{c.title || c.description || c.type}</div></td>
-                      <td><div className="td-coach">{c.coachFirstName || 'Instructeur'} {c.coachLastName || ''}</div></td>
+                      <td><div className="td-coach">{c.coachFirstName || ''} {c.coachLastName || ''}</div></td>
                       <td><div>{dateStr}</div><div className="td-time">{timeStr}</div></td>
                       <td><div className="td-price">{c.price ? c.price.toLocaleString('fr-FR') + ' DA' : '—'}</div></td>
                       <td>
@@ -264,19 +312,8 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <button className="admin-btn-edit" onClick={() => onEdit(c)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            Éditer
-                          </button>
-                          <button className="admin-btn-delete" onClick={() => onDelete(c.id)}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                            </svg>
-                            Supprimer
-                          </button>
+                          <button className="admin-btn-edit" onClick={() => onEdit(c)}>Éditer</button>
+                          <button className="admin-btn-delete" onClick={() => onDelete(c)}>Supprimer</button>
                         </div>
                       </td>
                     </tr>
@@ -284,6 +321,30 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                 })}
               </tbody>
             </table>
+            
+            {/* PAGINATION */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#fafafa', fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button className="ui-btn ui-btn--ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>&lt; Previous</button>
+                <span style={{ padding: '6px 12px', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+                <button className="ui-btn ui-btn--ghost" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>Next &gt;</button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <select className="ui-input" style={{ width: '60px', padding: '4px', fontSize: '13px' }} value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span style={{ color: '#888' }}>Rows per page</span>
+              </div>
+
+              <div style={{ color: '#888' }}>
+                Showing {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
+              </div>
+            </div>
+            
           </div>
         )}
       </div>
@@ -360,26 +421,94 @@ function ClientForm({ courses, onSave }) {
   );
 }
 /* ── Clients Table Section ──────────────────────── */
-function ClientsTable({ clients, onDelete }) {
+function ClientsTable({ clients, onEdit, onDelete }) {
+  const [search, setSearch] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [sortConfig, setSortConfig] = React.useState({ key: 'bookedAt', direction: 'desc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
+
+  const sortedClients = React.useMemo(() => {
+    let sortable = [...(clients || [])];
+    if (sortConfig !== null) {
+      sortable.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (sortConfig.key === 'firstName') {
+          valA = (a.firstName || '').toLowerCase(); valB = (b.firstName || '').toLowerCase();
+        } else if (sortConfig.key === 'email') {
+          valA = (a.email || '').toLowerCase(); valB = (b.email || '').toLowerCase();
+        } else if (sortConfig.key === 'bookedAt') {
+          valA = new Date(a.bookedAt || 0); valB = new Date(b.bookedAt || 0);
+        }
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [clients, sortConfig]);
+
+  const filtered = sortedClients.filter(cl => {
+    const term = search.toLowerCase();
+    const fullName = `${cl.firstName || ''} ${cl.lastName || ''}`.toLowerCase();
+    const matchesSearch = fullName.includes(term) || (cl.email || '').toLowerCase().includes(term);
+    const matchesCat = category ? cl.courseType === category : true;
+    return matchesSearch && matchesCat;
+  });
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const currentData = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const isEmpty = !clients || clients.length === 0;
 
   return (
-    <div className="admin-card">
-      <div className="admin-card-header">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <span className="admin-card-title">Clients &amp; Réservations</span>
+    <div className="admin-card" style={{ padding: 0 }}>
+      {/* TOOLBAR */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+        </div>
+        <button className="ui-btn ui-btn--ghost" style={{ fontSize: '13px', display: 'flex', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          XLSX tools
+        </button>
       </div>
+
+      {/* SEARCH BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px', gap: '10px' }}>
+        <div style={{ position: 'relative' }}>
+          <select className="ui-input" style={{ width: '160px', paddingLeft: '30px' }} value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">Category</option>
+            {Array.from(new Set(clients.map(c => c.courseType).filter(Boolean))).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <input type="text" className="ui-input" style={{ width: '250px', paddingLeft: '30px' }} placeholder="Search..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <svg style={{ position: 'absolute', left: '10px', top: '10px', color: '#888' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+
       <div className="admin-card-body" style={{ padding: 0 }}>
         {isEmpty && (
-          <div className="empty-state" style={{ display: 'flex' }}>
-            <div className="empty-state-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.5">
-                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-              </svg>
-            </div>
+          <div className="empty-state" style={{ display: 'flex', padding: '40px' }}>
             <p>Aucun client enregistré.</p>
           </div>
         )}
@@ -388,32 +517,56 @@ function ClientsTable({ clients, onDelete }) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Nom</th>
-                  <th>Email</th>
-                  <th>Classe</th>
-                  <th>Date</th>
+                  <th onClick={() => handleSort('firstName')} style={{ cursor: 'pointer' }}>Nom {sortConfig.key === 'firstName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('courseType')} style={{ cursor: 'pointer' }}>Classe {sortConfig.key === 'courseType' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th onClick={() => handleSort('bookedAt')} style={{ cursor: 'pointer' }}>Date {sortConfig.key === 'bookedAt' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map(cl => (
+                {currentData.length === 0 ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
+                ) : currentData.map(cl => (
                   <tr key={cl.id}>
                     <td><div className="td-title">{cl.firstName} {cl.lastName}</div></td>
                     <td><div className="td-email">{cl.email}</div></td>
                     <td><div className="td-coach">{cl.courseType || 'Classe #' + cl.courseId}</div></td>
                     <td><div className="td-time">{cl.bookedAt ? new Date(cl.bookedAt).toLocaleDateString('fr-FR') : '—'}</div></td>
                     <td>
-                      <button className="admin-btn-delete" onClick={() => onDelete(cl.id)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-                        </svg>
-                        Retirer
-                      </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {onEdit && <button className="admin-btn-edit" onClick={() => onEdit(cl)}>Éditer</button>}
+                        <button className="admin-btn-delete" onClick={() => onDelete(cl)}>Retirer</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            {/* PAGINATION */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#fafafa', fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button className="ui-btn ui-btn--ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>&lt; Previous</button>
+                <span style={{ padding: '6px 12px', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+                <button className="ui-btn ui-btn--ghost" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px', fontSize: '13px' }}>Next &gt;</button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <select className="ui-input" style={{ width: '60px', padding: '4px', fontSize: '13px' }} value={rowsPerPage} onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span style={{ color: '#888' }}>Rows per page</span>
+              </div>
+
+              <div style={{ color: '#888' }}>
+                Showing {(page - 1) * rowsPerPage + 1}-{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
+              </div>
+            </div>
+            
           </div>
         )}
       </div>
@@ -596,3 +749,175 @@ function TestimonialAdmin() {
     </div>
   );
 }
+
+/* ── Analytics & Logs Restored ─────────────────── */
+function AdminStats({ courses, clients }) {
+  const [logCount, setLogCount] = React.useState(0);
+  
+  React.useEffect(() => {
+    fetch('/api/admin/logs')
+      .then(r => r.json())
+      .then(data => setLogCount(Array.isArray(data) ? data.length : (data._embedded?.adminLogs?.length || data.content?.length || 0)))
+      .catch(() => {});
+  }, []);
+
+  const now = new Date();
+  const active = (courses || []).filter(c => {
+    const dt = c.date && c.time ? new Date(`${c.date}T${c.time}`) : new Date();
+    return dt > now;
+  });
+  const booked = (courses || []).reduce((s, c) => s + (c.reservedSpots || 0), 0);
+
+  return (
+    <div className="stats-row">
+      <div className="stat-card">
+        <div className="stat-card-label">Classes Actives</div>
+        <div className="stat-card-value">{active.length}</div>
+        <div className="stat-card-sub">à venir</div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-card-label">Réservations Totales</div>
+        <div className="stat-card-value">{booked}</div>
+        <div className="stat-card-sub">toutes classes</div>
+      </div>
+      <div className="stat-card">
+        <div className="stat-card-label">Clients Enregistrés</div>
+        <div className="stat-card-value">{clients ? clients.length : 0}</div>
+        <div className="stat-card-sub">dans le système</div>
+      </div>
+      <div className="stat-card" style={{ background: 'var(--ocean)', color: 'white' }}>
+        <div className="stat-card-label" style={{ color: 'rgba(255,255,255,0.8)' }}>Logs Serveur</div>
+        <div className="stat-card-value">{logCount}</div>
+        <div className="stat-card-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>actions CUD</div>
+      </div>
+    </div>
+  );
+}
+
+function AdminCharts({ courses }) {
+  const { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } = window.Recharts;
+  const [data, setData] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch('/api/admin/analytics').then(r => r.json())
+      .then(d => setData(d)).catch(e => console.error(e));
+  }, []);
+
+  if (!data) return <div className="admin-card" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--rust)' }}>Chargement des statistiques...</div>;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span className="admin-card-title">Évolution des Réservations (7 Jours)</span>
+        </div>
+        <div className="admin-card-body" style={{ padding: '24px 16px 16px 0', height: 280 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data.dailyStats}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)"/>
+              <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#888'}} dy={10}/>
+              <YAxis tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#888'}} dx={-10}/>
+              <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} cursor={{stroke: 'rgba(0,0,0,0.05)'}}/>
+              <Area type="monotone" dataKey="reservations" stroke="var(--ocean)" fill="var(--ocean)" fillOpacity={0.1} strokeWidth={2}/>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
+            <path d="M12 20V10M18 20V4M6 20v-4"/>
+          </svg>
+          <span className="admin-card-title">Remplissage par Classe (Top 5)</span>
+        </div>
+        <div className="admin-card-body" style={{ padding: '24px 16px 16px 0', height: 280 }}>
+           <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data.courseCapacities}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)"/>
+              <XAxis dataKey="title" tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#888'}} dy={10}/>
+              <YAxis tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#888'}} dx={-10}/>
+              <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}/>
+              <Bar dataKey="capacity" fill="rgba(0,0,0,0.05)" radius={[4,4,0,0]} name="Capacité Totale"/>
+              <Bar dataKey="reserved" fill="var(--ocean)" radius={[4,4,0,0]} name="Places Occupées"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminActivityLogs() {
+  const [logs, setLogs] = React.useState([]);
+  
+  React.useEffect(() => {
+    const fetchLogs = () => {
+      fetch('/api/admin/logs')
+        .then(r => r.json())
+        .then(data => setLogs(Array.isArray(data) ? data : (data._embedded?.adminLogs || data.content || [])))
+        .catch(() => setLogs([]));
+    };
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getColor = (action) => {
+    switch(action) {
+      case 'RESERVATION': return 'var(--rust)';
+      case 'CREATE': return 'var(--moss)';
+      case 'UPDATE': return '#eab308';
+      case 'DELETE': return '#ef4444';
+      default: return '#9ca3af';
+    }
+  };
+
+  return (
+    <div className="admin-card" style={{ marginBottom: 32 }}>
+      <div className="admin-card-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="1.8">
+          <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
+        <span className="admin-card-title">Journaux et Activités Système</span>
+      </div>
+      <div className="admin-card-body" style={{ padding: 0 }}>
+        {logs.length === 0 ? (
+          <div className="empty-state" style={{ padding: '40px' }}><p>Aucune activité récente.</p></div>
+        ) : (
+          <div className="admin-table-wrap" style={{ maxHeight: 350, overflowY: 'auto' }}>
+            <table className="admin-table">
+              <tbody>
+                {logs.map(l => (
+                  <tr key={l.id}>
+                    <td style={{ width: 90, color: '#888', fontSize: '13px' }}>{new Date(l.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</td>
+                    <td style={{ width: 140 }}>
+                      <span style={{ color: getColor(l.action), background: 'rgba(0,0,0,0.03)', padding: '4px 8px', borderRadius: 4, fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px' }}>
+                        {l.action}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: '500', color: 'var(--ink)' }}>{l.entityName} #{l.entityId}</td>
+                    <td style={{ color: '#666', fontSize: '14px' }}>{l.details}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+window.AdminStats = AdminStats;
+window.AdminCharts = AdminCharts;
+window.AdminActivityLogs = AdminActivityLogs;
+window.CourseForm = CourseForm;
+window.ClientForm = ClientForm;
+window.CoursesTable = CoursesTable;
+window.ClientsTable = ClientsTable;
+window.ContentAdmin = ContentAdmin;
+// EOF

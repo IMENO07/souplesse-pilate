@@ -213,7 +213,7 @@ const CoursesDB = {
             time: courseData.dateTime.split('T')[1],
             capacity: Number(courseData.capacity),
             imageUrl: courseData.image || null,
-            instructorId: courseData.instructorId || 1
+            instructorId: Number(courseData.instructorId)
         };
         await api.post('/admin/courses', payload);
         return true;
@@ -237,7 +237,7 @@ const CoursesDB = {
             time: courseData.dateTime.split('T')[1],
             capacity: Number(courseData.capacity),
             imageUrl: courseData.image || null,
-            instructorId: courseData.instructorId || 1
+            instructorId: Number(courseData.instructorId)
         };
         await api.put(`/admin/courses/${id}`, payload);
         return true;
@@ -265,6 +265,17 @@ const CoursesDB = {
   spotsLeft(course) {
     return course.capacity - (course.reservedSpots || 0); 
   },
+};
+
+const InstructorsDB = {
+  async getAll() {
+    try {
+      return await api.get('/admin/instructors');
+    } catch (e) {
+      console.error('Failed to load instructors', e);
+      return [];
+    }
+  }
 };
 
 /* ── CLIENTS API ────────────────────────────────────── */

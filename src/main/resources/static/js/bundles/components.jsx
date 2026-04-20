@@ -1,15 +1,17 @@
 /* ── Admin Sidebar Component ───────────────────── */
-function AdminSidebar({ activeSection, onNavigate }) {
-  const { useNavigate } = ReactRouterDOM;
+function AdminSidebar() {
+  const { useNavigate, useLocation } = ReactRouterDOM;
   const navigate = useNavigate();
+  const location = useLocation();
 
   const items = [
-    { id: 'dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>', label: 'Tableau de bord' },
-    { id: 'addCourse', icon: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>', label: 'Ajouter une Classe' },
-    { id: 'courses', icon: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', label: 'Toutes les Classes' },
-    { id: 'clients', icon: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>', label: 'Clients & Réservations' },
-    { id: 'contentSettings', icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>', label: 'Contenu du Site' },
+    { id: 'dashboard', path: '/admin/dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>', label: 'Tableau de bord' },
+    { id: 'classes', path: '/admin/classes', icon: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', label: 'Toutes les Classes' },
+    { id: 'clients', path: '/admin/clients', icon: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>', label: 'Clients & Réservations' },
+    { id: 'content', path: '/admin/content', icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>', label: 'Contenu du Site' },
   ];
+
+  const currentPath = location.pathname;
 
   return (
     <aside className="admin-sidebar">
@@ -20,8 +22,8 @@ function AdminSidebar({ activeSection, onNavigate }) {
       </div>
       <nav className="sidebar-nav">
         {items.map(item => (
-          <a key={item.id} href="#" className={`sidebar-nav-item${activeSection === item.id ? ' active' : ''}`}
-             onClick={(e) => { e.preventDefault(); onNavigate(item.id); }}>
+          <a key={item.id} href={`#${item.path}`} className={`sidebar-nav-item${currentPath === item.path ? ' active' : ''}`}
+             onClick={(e) => { e.preventDefault(); navigate(item.path); }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
                  dangerouslySetInnerHTML={{ __html: item.icon }}/>
             {item.label}

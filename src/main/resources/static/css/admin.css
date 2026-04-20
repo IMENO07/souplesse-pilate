@@ -124,6 +124,9 @@ body {
 .sidebar-logout:hover { color: #e74c3c; }
 
 /* ── Main content ───────────────────────────────────── */
+.admin-container {
+  display: flex;
+}
 .admin-main {
   margin-left: var(--admin-sidebar-w);
   flex: 1;
@@ -200,10 +203,10 @@ body {
   margin-top: 4px;
 }
 
-/* ── Two-column layout ──────────────────────────────── */
+/* ── Responsive grid layout ────────────────────────── */
 .admin-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 24px;
   align-items: start;
 }

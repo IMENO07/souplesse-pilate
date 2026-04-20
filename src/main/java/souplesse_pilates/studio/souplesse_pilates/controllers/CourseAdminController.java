@@ -19,6 +19,7 @@ import souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests.CreateCou
 import souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests.UpdateCourseRequestDto;
 import souplesse_pilates.studio.souplesse_pilates.domain.dtos.responses.CourseResponseDto;
 import souplesse_pilates.studio.souplesse_pilates.mappers.CourseMapper;
+import souplesse_pilates.studio.souplesse_pilates.services.AdminLogService;
 import souplesse_pilates.studio.souplesse_pilates.services.CourseService;
 
 @RestController
@@ -28,21 +29,27 @@ import souplesse_pilates.studio.souplesse_pilates.services.CourseService;
 public class CourseAdminController {
     private final CourseService courseService;
     private final CourseMapper courseMapper;
+    private final AdminLogService adminLogService;
 
     @PostMapping
     public ResponseEntity<CourseResponseDto> create(@RequestBody @Valid CreateCourseRequestDto dto) {
-        return ResponseEntity.ok(courseMapper.toDto(courseService.createCourse(dto)));
+        CourseResponseDto result = courseMapper.toDto(courseService.createCourse(dto));
+        adminLogService.log("CREATE", "Nouvelle classe créée: " + result.title());
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CourseResponseDto> update(@PathVariable Long id,
                                                     @RequestBody UpdateCourseRequestDto dto) {
-        return ResponseEntity.ok(courseMapper.toDto(courseService.updateCourse(id, dto)));
+        CourseResponseDto result = courseMapper.toDto(courseService.updateCourse(id, dto));
+        adminLogService.log("UPDATE", "Classe mise à jour: " + result.title());
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         courseService.deleteCourse(id);
+        adminLogService.log("DELETE", "Classe supprimée (ID: " + id + ")");
         return ResponseEntity.noContent().build();
     }
 

@@ -8,13 +8,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.Course;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.GalleryItem;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.Reservation;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.StudioImage;
+import souplesse_pilates.studio.souplesse_pilates.domain.entities.Testimonial;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.User;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseStatus;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.CourseType;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.UserRole;
 import souplesse_pilates.studio.souplesse_pilates.repositories.CourseRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.GalleryItemRepository;
 import souplesse_pilates.studio.souplesse_pilates.repositories.ReservationRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.StudioImageRepository;
+import souplesse_pilates.studio.souplesse_pilates.repositories.TestimonialRepository;
 import souplesse_pilates.studio.souplesse_pilates.repositories.UserRepository;
 
 import java.math.BigDecimal;
@@ -32,116 +38,127 @@ public class TestingSeeder implements CommandLineRunner, SeedService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final ReservationRepository reservationRepository;
+    private final TestimonialRepository testimonialRepository;
+    private final GalleryItemRepository galleryItemRepository;
+    private final StudioImageRepository studioImageRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("Starting TESTING database seed (High Volume & Edge Cases)...");
+        log.info("Starting TESTING database seed — full clean rebuild...");
 
-        // 1. Admin
+        // ── 1. Wipe in FK-safe order ──────────────────────────────────────────────
+        reservationRepository.deleteAll();
+        courseRepository.deleteAll();
+        galleryItemRepository.deleteAll();
+        studioImageRepository.deleteAll();
+        testimonialRepository.deleteAll();
+        userRepository.findAll().stream()
+                .filter(u -> u.getRole() != UserRole.ADMIN)
+                .forEach(userRepository::delete);
+
+        // ── 2. Admin ──────────────────────────────────────────────────────────────
         createAdminIfNotExists(userRepository, passwordEncoder);
 
-        // 2. Instructors (5 total)
+        // ── 3. Instructors ────────────────────────────────────────────────────────
         List<User> instructors = new ArrayList<>();
-        instructors.add(createInstructorIfNotExists("anna@fitbook.com", "Anna", "Lee"));
-        instructors.add(createInstructorIfNotExists("ben@fitbook.com", "Ben", "Stokes"));
-        instructors.add(createInstructorIfNotExists("chloe@fitbook.com", "Chloe", "Martin"));
-        instructors.add(createInstructorIfNotExists("david@fitbook.com", "David", "Kim"));
-        instructors.add(createInstructorIfNotExists("emma@fitbook.com", "Emma", "Watson"));
+        instructors.add(buildInstructor("anna@souplesse.dz",   "Anna",   "Lee"));
+        instructors.add(buildInstructor("ben@souplesse.dz",    "Ben",    "Stokes"));
+        instructors.add(buildInstructor("chloe@souplesse.dz",  "Chloe",  "Martin"));
+        instructors.add(buildInstructor("david@souplesse.dz",  "David",  "Kim"));
+        instructors.add(buildInstructor("emma@souplesse.dz",   "Emma",   "Watson"));
 
-        // 3. Courses (15 total: past, present, full, available)
-        if (courseRepository.count() == 0) {
-            log.info("Creating TESTING courses...");
+        // ── 4. Courses (15 total: past, available, full) ──────────────────────────
+        log.info("Creating TESTING courses...");
+        LocalDate base = LocalDate.now();
+        Course[] courses = new Course[15];
 
-            Course[] courses = new Course[15];
-
-            // 5 Past Courses
-            for (int i = 0; i < 5; i++) {
-                courses[i] = courseRepository.save(Course.builder()
-                        .type(CourseType.PILATES)
-                        .description("Classe Passée " + i)
-                        .price(new BigDecimal("2500"))
-                        .date(LocalDate.now().minusDays(i + 1))
-                        .time(LocalTime.of(10 + i, 0))
-                        .capacity(10)
-                        .reservedSpots(0)
-                        .status(CourseStatus.AVAILABLE)
-                        .instructor(instructors.get(i % 5))
-                        .build());
-            }
-
-            // 5 Future Available Courses
-            for (int i = 5; i < 10; i++) {
-                courses[i] = courseRepository.save(Course.builder()
-                        .type(CourseType.YOGA)
-                        .description("Classe Future Disponible " + i)
-                        .price(new BigDecimal("2000"))
-                        .date(LocalDate.now().plusDays(i - 4))
-                        .time(LocalTime.of(8 + i % 5, 30))
-                        .capacity(15)
-                        .reservedSpots(0)
-                        .status(CourseStatus.AVAILABLE)
-                        .instructor(instructors.get(i % 5))
-                        .build());
-            }
-
-            // 5 Future FULL Courses (Capacity 1, will be fully booked)
-            for (int i = 10; i < 15; i++) {
-                courses[i] = courseRepository.save(Course.builder()
-                        .type(CourseType.STRETCHING)
-                        .description("Classe Future COMPLÈTE " + i)
-                        .price(new BigDecimal("1500"))
-                        .date(LocalDate.now().plusDays(i - 9))
-                        .time(LocalTime.of(18 + i % 3, 0))
-                        .capacity(2) // Capacity 2 so we can book it twice to fill it
-                        .reservedSpots(0)
-                        .status(CourseStatus.AVAILABLE)
-                        .instructor(instructors.get(i % 5))
-                        .build());
-            }
-
-            // 4. Reservations (Book the Full courses + some others)
-            log.info("Creating TESTING reservations...");
-            for (int i = 10; i < 15; i++) {
-                Course fullCourse = courses[i];
-                
-                // Book spot 1
-                reservationRepository.save(Reservation.builder()
-                        .firstName("TestClientA")
-                        .lastName("Doe")
-                        .email("clienta_" + i + "@test.com")
-                        .course(fullCourse)
-                        .build());
-                
-                // Book spot 2
-                reservationRepository.save(Reservation.builder()
-                        .firstName("TestClientB")
-                        .lastName("Smith")
-                        .email("clientb_" + i + "@test.com")
-                        .course(fullCourse)
-                        .build());
-
-                // Manually update reserved spots & status since we bypassed the service layer
-                fullCourse.setReservedSpots(2);
-                fullCourse.updateStatus();
-                courseRepository.save(fullCourse);
-            }
+        // 5 past courses
+        for (int i = 0; i < 5; i++) {
+            courses[i] = courseRepository.save(Course.builder()
+                    .type(CourseType.PILATES)
+                    .title("Classe Passée " + (i + 1))
+                    .description("Séance passée pour tests — cours " + (i + 1))
+                    .price(new BigDecimal("2500"))
+                    .date(base.minusDays(i + 1)).time(LocalTime.of(10 + i, 0))
+                    .capacity(10).reservedSpots(0).status(CourseStatus.AVAILABLE)
+                    .instructor(instructors.get(i % 5)).build());
         }
 
-        log.info("TESTING database seed completed.");
+        // 5 future available courses
+        for (int i = 5; i < 10; i++) {
+            courses[i] = courseRepository.save(Course.builder()
+                    .type(CourseType.YOGA)
+                    .title("Yoga Disponible " + (i - 4))
+                    .description("Classe future disponible — cours " + (i - 4))
+                    .price(new BigDecimal("2000"))
+                    .date(base.plusDays(i - 4)).time(LocalTime.of(8 + (i % 5), 30))
+                    .capacity(15).reservedSpots(0).status(CourseStatus.AVAILABLE)
+                    .instructor(instructors.get(i % 5)).build());
+        }
+
+        // 5 future full courses (capacity 2, will be fully booked)
+        for (int i = 10; i < 15; i++) {
+            courses[i] = courseRepository.save(Course.builder()
+                    .type(CourseType.STRETCHING)
+                    .title("Stretching COMPLET " + (i - 9))
+                    .description("Classe future complète — cours " + (i - 9))
+                    .price(new BigDecimal("1500"))
+                    .date(base.plusDays(i - 9)).time(LocalTime.of(18 + (i % 3), 0))
+                    .capacity(2).reservedSpots(0).status(CourseStatus.AVAILABLE)
+                    .instructor(instructors.get(i % 5)).build());
+        }
+
+        // ── 5. Reservations ───────────────────────────────────────────────────────
+        log.info("Creating TESTING reservations...");
+        // Book the 5 full courses to capacity
+        for (int i = 10; i < 15; i++) {
+            Course full = courses[i];
+            reservationRepository.save(Reservation.builder()
+                    .firstName("ClientA").lastName("Test")
+                    .email("clienta_" + i + "@test.com").course(full).build());
+            reservationRepository.save(Reservation.builder()
+                    .firstName("ClientB").lastName("Test")
+                    .email("clientb_" + i + "@test.com").course(full).build());
+            full.setReservedSpots(2);
+            full.updateStatus();
+            courseRepository.save(full);
+        }
+        // Partial reservations on some available courses
+        for (int i = 5; i < 8; i++) {
+            reservationRepository.save(Reservation.builder()
+                    .firstName("ClientC").lastName("Test")
+                    .email("clientc_" + i + "@test.com").course(courses[i]).build());
+        }
+
+        // ── 6. Testimonials ───────────────────────────────────────────────────────
+        testimonialRepository.save(Testimonial.builder()
+                .text("Excellent studio — idéal pour débuter ou progresser.").name("Test User A")
+                .role("Membre test").displayOrder(1).build());
+        testimonialRepository.save(Testimonial.builder()
+                .text("Les séances sont bien structurées et le staff est accueillant.").name("Test User B")
+                .role("Pratiquant test").displayOrder(2).build());
+
+        // ── 7. Gallery ────────────────────────────────────────────────────────────
+        galleryItemRepository.save(GalleryItem.builder()
+                .imageUrl("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80")
+                .caption("Test Gallery 1").likes(100).featured(true).displayOrder(1).build());
+        galleryItemRepository.save(GalleryItem.builder()
+                .imageUrl("https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80")
+                .caption("Test Gallery 2").likes(200).featured(false).displayOrder(2).build());
+
+        // ── 8. Studio Images ──────────────────────────────────────────────────────
+        studioImageRepository.save(StudioImage.builder()
+                .imageUrl("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80")
+                .displayOrder(1).build());
+
+        log.info("TESTING database seed completed — {} courses, reservations seeded.", courses.length);
     }
 
-    private User createInstructorIfNotExists(String email, String firstName, String lastName) {
-        if (!userRepository.existsByEmail(email)) {
-            User instructor = User.builder()
-                    .firstName(firstName)
-                    .lastName(lastName)
-                    .email(email)
-                    .password(passwordEncoder.encode("instructor123"))
-                    .role(UserRole.INSTRUCTOR)
-                    .build();
-            return userRepository.save(instructor);
-        }
-        return userRepository.findByEmail(email).orElseThrow();
+    private User buildInstructor(String email, String firstName, String lastName) {
+        return userRepository.save(User.builder()
+                .firstName(firstName).lastName(lastName).email(email)
+                .password(passwordEncoder.encode("instructor123"))
+                .role(UserRole.INSTRUCTOR).build());
     }
 }

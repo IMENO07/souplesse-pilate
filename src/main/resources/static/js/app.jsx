@@ -1,10 +1,19 @@
-/* ── Main App — Modern React Router ────────────────── */
-const { createHashRouter, RouterProvider } = ReactRouterDOM;
+const { createHashRouter, RouterProvider, Navigate } = ReactRouterDOM;
 
 const router = createHashRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <LoginPage /> },
-  { path: "/admin", element: <AdminPage /> }
+  { 
+    path: "/admin", 
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: "dashboard", element: <AdminDashboardPage /> },
+      { path: "classes", element: <AdminClassesPage /> },
+      { path: "clients", element: <AdminClientsPage /> },
+      { path: "content", element: <AdminContentPage /> }
+    ]
+  }
 ]);
 
 function App() {
