@@ -141,6 +141,13 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(window.scrollY > 50);
+
+  React.useEffect(() => {
+    function handleScroll() { setIsScrolled(window.scrollY > 50); }
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   function closeMobile() { setMobileOpen(false); }
 
@@ -160,7 +167,7 @@ function Navbar() {
 
   return (
     <>
-      <nav id="nav">
+      <nav id="nav" className={isScrolled ? 'scrolled' : ''}>
         <a href="#" className="nav-logo" onClick={(e) => { e.preventDefault(); navTo('hero'); }}>
           <span>SOUPLESSE</span>
           <span>Pilates Studio</span>
