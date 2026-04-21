@@ -344,17 +344,7 @@ function HomePage() {
     });
   }, []);
 
-  // Scroll animations (fade-up)
-  React.useEffect(() => {
-    function observeFadeUps() {
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
-      }, { threshold: 0.12, rootMargin: "-60px" });
-      document.querySelectorAll('.fade-up:not(.visible)').forEach(el => observer.observe(el));
-    }
-    const timer = setTimeout(observeFadeUps, 300);
-    return () => clearTimeout(timer);
-  }, [courses]);
+  window.useFadeUp([courses]);
 
   // Active nav tracking
   React.useEffect(() => {
@@ -396,12 +386,15 @@ function HomePage() {
 function AboutPage() {
   React.useEffect(() => {
     SEOManager.set({
-      title: 'Notre Histoire',
-      description: 'Découvrez l\'esprit Souplesse. Un studio fondé sur la passion du mouvement et le raffinement.',
+      title: 'Notre Histoire | Souplesse Pilates',
+      description: 'Découvrez l\'esprit Souplesse. Un studio fondé sur la passion du mouvement, le raffinement architectural et le bien-être à Alger.',
       image: '/pilimg.jpeg',
       url: window.location.href
     });
+    window.scrollTo(0, 0);
   }, []);
+
+  window.useFadeUp([]);
 
   return (
     <div className="subpage-wrapper">
@@ -418,15 +411,43 @@ function AboutPage() {
            <div className="fade-up">
               <h2>Arches & Lumière</h2>
               <p>Fondé en 2023 à Alger, Souplesse est né d'un désir de créer un espace où le mouvement ne serait pas seulement physique, mais aussi une forme d'art et de méditation.</p>
-              <p>Notre studio a été conçu par des architectes passionnés, utilisant des matériaux naturels comme le chêne clair et le plâtre texturé pour créer une atmosphère de sérénité absolue.</p>
+              <p>Notre studio a été conçu par des architectes passionnés, utilisant des matériaux naturels comme le chêne clair et le plâtre texturé pour créer une atmosphère de sérénité absolue. Chaque détail, de l'éclairage tamisé à l'acoustique travaillée, a été pensé pour vous offrir une immersion totale.</p>
            </div>
            <div className="fade-up">
               <h2>La Pratique Reformer</h2>
               <p>Nous nous spécialisons dans le Reformer Pilates, une méthode qui utilise des ressorts pour offrir une résistance fluide, permettant de sculpter le corps tout en protégeant les articulations.</p>
-              <p>Chaque séance est limitée à un petit nombre de participants pour garantir une attention personnalisée de la part de nos instructeurs certifiés.</p>
+              <p>Contrairement aux exercices traditionnels, le Reformer permet de travailler les muscles profonds avec une précision chirurgicale. Que vous soyez débutant ou athlète confirmé, la machine s'adapte à vos besoins pour un renforcement global et durable.</p>
            </div>
         </div>
+
+        <div className="about-values-section fade-up" style={{ marginTop: '80px', paddingTop: '80px', borderTop: '1px solid var(--sand)' }}>
+          <div className="about-values-grid">
+            <div className="value-item">
+              <h3>Excellence</h3>
+              <p>Nous collaborons uniquement avec des instructeurs certifiés internationalement pour vous garantir une pratique sécuritaire et efficace.</p>
+            </div>
+            <div className="value-item">
+              <h3>Intimité</h3>
+              <p>Avec un maximum de 6 participants par session, nous privilégions la qualité de l'accompagnement sur la quantité.</p>
+            </div>
+            <div className="value-item">
+              <h3>Raffinement</h3>
+              <p>De nos équipements Merrithew™ à nos protocoles de soins, nous visons le plus haut standard du luxe bien-être.</p>
+            </div>
+          </div>
+        </div>
       </section>
+
+      <section className="about-team-preview fade-up" style={{ background: 'var(--cream)', padding: '100px 0', marginTop: '100px' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <h2 className="section-title">L'Équipe <span style={{ color: 'var(--sand)' }}>Experte</span></h2>
+          <p style={{ maxWidth: '600px', margin: '0 auto 60px' }}>Nos instructeurs sont là pour vous guider, vous challenger et vous aider à atteindre vos objectifs de bien-être physique et mental.</p>
+          <div className="btn-group">
+            <a href="#/booking" className="btn-primary">Réserver un cours</a>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
@@ -568,6 +589,78 @@ function LoginPage() {
           ← Vue Client
         </a>
       </div>
+    </div>
+  );
+}
+/* ── Terms & Privacy Pages ─────────────────────── */
+
+function TermsPage() {
+  React.useEffect(() => { 
+    SEOManager.set({ title: 'Conditions Générales | Souplesse Pilates', description: 'Conditions d\'utilisation et de vente de Souplesse Pilates Studio Alger.' });
+    window.scrollTo(0, 0); 
+  }, []);
+  window.useFadeUp([]);
+  return (
+    <div className="subpage-wrapper">
+      <Navbar />
+      <header className="subpage-header">
+        <div className="container">
+          <h1 className="section-title">Conditions <em style={{ color: 'var(--sand)' }}>Générales</em></h1>
+        </div>
+      </header>
+      <section className="container subpage-content" style={{ maxWidth: '800px', margin: '0 auto 100px' }}>
+        <div className="legal-content fade-up">
+          <h2>1. Objet</h2>
+          <p>Les présentes conditions générales de vente et d'utilisation (CGV/CGU) régissent l'accès et l'utilisation des services du studio Souplesse Pilates.</p>
+          
+          <h2>2. Réservations & Annulations</h2>
+          <p>Toute séance doit être réservée à l'avance via notre plateforme en ligne. Une annulation doit être effectuée au moins 12 heures avant le début de la séance pour ne pas être décomptée de votre forfait.</p>
+          
+          <h2>3. Santé & Aptitude Physique</h2>
+          <p>Le client s'engage à être en bonne santé physique pour pratiquer le Pilates. Il est impératif de signaler toute blessure, pathologie ou grossesse à l'instructeur avant le début du cours.</p>
+          
+          <h2>4. Tarifs & Paiements</h2>
+          <p>Les tarifs sont indiqués en Dinars Algériens (DA). Les forfaits sont nominatifs et possèdent une durée de validité limitée selon l'offre choisie.</p>
+          
+          <h2>5. Responsabilité</h2>
+          <p>Souplesse Pilates décline toute responsabilité en cas de vol ou de perte d'objets personnels au sein du studio.</p>
+        </div>
+      </section>
+      <Footer />
+    </div>
+  );
+}
+
+function PrivacyPage() {
+  React.useEffect(() => { 
+    SEOManager.set({ title: 'Confidentialité | Souplesse Pilates', description: 'Politique de protection des données personnelles de Souplesse Pilates.' });
+    window.scrollTo(0, 0); 
+  }, []);
+  window.useFadeUp([]);
+  return (
+    <div className="subpage-wrapper">
+      <Navbar />
+      <header className="subpage-header">
+        <div className="container">
+          <h1 className="section-title">Politique de <em style={{ color: 'var(--sand)' }}>Confidentialité</em></h1>
+        </div>
+      </header>
+      <section className="container subpage-content" style={{ maxWidth: '800px', margin: '0 auto 100px' }}>
+        <div className="legal-content fade-up">
+          <h2>Collecte des données</h2>
+          <p>Nous collectons uniquement les informations nécessaires à la gestion de vos réservations (Nom, Prénom, Email, Téléphone).</p>
+          
+          <h2>Utilisation des informations</h2>
+          <p>Vos données sont utilisées pour confirmer vos séances, vous envoyer des rappels et, si vous l'avez accepté, vous transmettre notre newsletter.</p>
+          
+          <h2>Protection des données</h2>
+          <p>Souplesse Pilates s'engage à ne jamais vendre ou partager vos données personnelles avec des tiers à des fins commerciales.</p>
+          
+          <h2>Vos droits</h2>
+          <p>Conformément à la législation en vigueur, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles sur simple demande.</p>
+        </div>
+      </section>
+      <Footer />
     </div>
   );
 }

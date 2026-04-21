@@ -583,3 +583,16 @@ window.SEOManager = {
         updateTag('meta[property="twitter:image"]', 'content', image);
     }
 };
+
+window.useFadeUp = (dependency = []) => {
+  React.useEffect(() => {
+    function observeFadeUps() {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+      }, { threshold: 0.12, rootMargin: "-60px" });
+      document.querySelectorAll('.fade-up:not(.visible)').forEach(el => observer.observe(el));
+    }
+    const timer = setTimeout(observeFadeUps, 300);
+    return () => clearTimeout(timer);
+  }, dependency);
+};

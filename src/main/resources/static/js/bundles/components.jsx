@@ -129,7 +129,11 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2025 Souplesse. Tous droits réservés.</span>
+        <div className="footer-bottom-links">
+          <span>© 2025 Souplesse. Tous droits réservés.</span>
+          <a href="#/terms">Conditions Générales</a>
+          <a href="#/privacy">Confidentialité</a>
+        </div>
         <span>Conçu avec intention.</span>
       </div>
     </footer>
