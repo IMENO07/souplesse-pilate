@@ -10,11 +10,16 @@ function AdminLayout() {
   const [courses, setCourses] = React.useState([]);
   const [clients, setClients] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   // Auth guard
   React.useEffect(() => {
     if (!token) navigate('/login');
   }, [token, navigate]);
+
+  // Close sidebar on location change
+  const location = ReactRouterDOM.useLocation();
+  React.useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   // Load data
   const refresh = React.useCallback(async () => {
@@ -44,13 +49,28 @@ function AdminLayout() {
   const contextValue = { courses, clients, loading, refresh, showToast };
 
   return (
-    <>
-      <AdminSidebar />
+    <div className={`admin-app-wrapper ${sidebarOpen ? 'sidebar-is-open' : ''}`}>
+      <AdminSidebar isOpen={sidebarOpen} />
+      
+      {/* Mobile Toggle Button */}
+      <button className="admin-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {sidebarOpen ? (
+            <path d="M18 6L6 18M6 6l12 12" />
+          ) : (
+            <path d="M3 12h18M3 6h18M3 18h18" />
+          )}
+        </svg>
+      </button>
+
+      {/* Backdrop */}
+      {sidebarOpen && <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+
       <main className="admin-main">
         <Outlet context={contextValue} />
       </main>
       <Toast/>
-    </>
+    </div>
   );
 }
 

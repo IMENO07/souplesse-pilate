@@ -3,6 +3,28 @@
    Design tokens from style.css (var(--deep), var(--ocean), etc.)
    ═══════════════════════════════════════════════════════════ */
 
+/* ── UTILS & ACCESSIBILITY ──────────────────────────────── */
+@media (max-width: 600px) {
+  .ui-input, .ui-btn, .ui-select, .ui-textarea {
+    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    min-height: 44px;
+  }
+}
+
+/* ── DIALOG RESPONSIVENESS ──────────────────────────────── */
+@media (max-width: 768px) {
+  .ui-dialog--md, .ui-dialog--lg, .ui-dialog--sm {
+    width: 92% !important;
+    margin: 16px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .ui-dialog-header { padding: 20px 24px 12px; }
+  .ui-dialog-body { padding: 12px 24px 24px; }
+  .ui-dialog-footer { padding: 16px 24px; flex-direction: column; gap: 12px; }
+  .ui-dialog-footer .ui-btn { width: 100%; }
+}
+
 /* ── Button ─────────────────────────────────────────────── */
 .ui-btn {
   display: inline-flex;

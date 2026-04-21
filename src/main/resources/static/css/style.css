@@ -441,6 +441,17 @@ button{cursor:pointer;font-family:var(--sans);border:none;background:none}
 .footer-contact-item span:last-child{font-size:13px;color:rgba(255,255,255,.55)}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;color:rgba(255,255,255,.2)}
 
+#mobile-menu{
+  display:flex;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);
+  z-index:99;padding:120px 40px 40px;
+  flex-direction:column;gap:12px;
+  transform:translateY(-100%);
+  transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events:none;
+}
+#mobile-menu.open{transform:translateY(0);pointer-events:auto}
+
 /* ── ANIMATIONS ─────────────────────────────────── */
 @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
 @keyframes fadeInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
@@ -455,16 +466,28 @@ button{cursor:pointer;font-family:var(--sans);border:none;background:none}
   .hamburger{display:flex}
   .hero-card{display:none}
   .studio-panel{grid-template-columns:1fr}
-  .studio-panel-text{padding:36px 28px}
-  .courses-grid{grid-template-columns:repeat(2,1fr)}
+  .studio-panel-text{padding:48px 32px}
+  .courses-grid{grid-template-columns:repeat(2,1fr);gap:24px}
   .booking-grid{grid-template-columns:1fr}
-  .footer-grid{grid-template-columns:1fr}
-  .gallery-grid{grid-template-columns:repeat(3,1fr)}
+  .footer-grid{grid-template-columns:1fr;gap:40px}
+  .gallery-grid{grid-template-columns:repeat(2,1fr)}
+  .pricing-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:600px){
-  .hero-btns{flex-direction:column;align-items:center}
-  .courses-grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .gallery-grid{grid-template-columns:repeat(3,1fr);gap:6px}
-  .booking-glass{padding:28px 20px}
-  .times-grid{grid-template-columns:repeat(4,1fr)}
+  .hero-title{font-size:52px}
+  .hero-sub{font-size:14px;padding:0 20px}
+  .hero-btns{flex-direction:column;align-items:center;width:100%;max-width:300px;margin:0 auto 40px}
+  .hero-btns .btn{width:100%}
+  
+  .courses-grid{grid-template-columns:1fr !important;gap:20px}
+  .gallery-grid{grid-template-columns:1fr !important;gap:12px}
+  .pricing-grid{grid-template-columns:1fr !important;gap:20px}
+  
+  .studio-title{font-size:32px}
+  .booking-glass{padding:32px 20px}
+  .times-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  
+  .footer-grid{text-align:center}
+  .footer-socials{justify-content:center}
+  .footer-contact-item{justify-content:center}
 }

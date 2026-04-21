@@ -1,5 +1,5 @@
 /* ── Admin Sidebar Component ───────────────────── */
-function AdminSidebar() {
+function AdminSidebar({ isOpen }) {
   const { useNavigate, useLocation } = ReactRouterDOM;
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,7 +15,7 @@ function AdminSidebar() {
   const currentPath = location.pathname;
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-name">SOUPLESSE</div>
         <div className="sidebar-logo-sub">Pilates Studio · Alger</div>
@@ -173,11 +173,11 @@ function Navbar() {
           <a href="#footer" className="nav-link" onClick={(e) => { e.preventDefault(); navTo('footer'); }}>Contact</a>
           <a href="#/booking" className="nav-cta" onClick={(e) => { e.preventDefault(); navTo('booking'); }}>Book Now</a>
         </div>
-        <button className={`hamburger${mobileOpen ? ' active' : ''}`} aria-label="Menu" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className={`hamburger${mobileOpen ? ' open' : ''}`} aria-label="Menu" onClick={() => setMobileOpen(!mobileOpen)}>
           <span></span><span></span><span></span>
         </button>
       </nav>
-      <div id="mobile-menu" style={{ display: mobileOpen ? 'flex' : 'none' }}>
+      <div id="mobile-menu" className={mobileOpen ? 'open' : ''}>
         <a href="#/about" onClick={closeMobile}>Studio</a>
         <a href="#" onClick={(e) => { e.preventDefault(); navTo('classes'); }}>Classes</a>
         <a href="#/pricing" onClick={closeMobile}>Tarifs</a>
