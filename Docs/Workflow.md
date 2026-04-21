@@ -8,7 +8,7 @@ This document dictates how the Souplesse Pilates platform is developed, scaled, 
 
 ## 1. The Macro Architecture
 
-The application is a **monolithic Spring Boot service**. The frontend (Vanilla HTML/CSS/JS) is embedded directly inside `src/main/resources/static/` and served by the same embedded Tomcat that hosts the REST API. There is no separate frontend server.
+The application is a **modernized monolith** featuring a **React-based Single Page Application (SPA)** embedded within a Spring Boot service. The frontend is serves as a collection of modular bundles (`js/bundles/*.jsx`) processed via Babel in the browser, ensuring a clean separation of concerns and high maintainability.
 
 ```mermaid
 graph TD
