@@ -65,7 +65,7 @@ The entire UI is embedded within the backend — there is no separate frontend s
 
 | Field | Value |
 | :--- | :--- |
-| Email | `admin@fitbook.com` |
+| Email | `admin@souplesse.dz` |
 | Password | `admin123` |
 
 These are automatically created on first startup via the `SeedService` interface.

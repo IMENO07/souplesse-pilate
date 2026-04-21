@@ -43,7 +43,7 @@ public class SecurityConfig {
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Static resources and HTML pages
-                        .requestMatchers("/", "/index.html", "/login.html", "/admin.html", "/booking.html", "/login", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**", "/assets/**")
+                        .requestMatchers("/", "/index.html", "/login.html", "/admin.html", "/booking.html", "/login", "/error", "/error/**", "/css/**", "/js/**", "/img/**", "/fonts/**", "/vendor/**", "/assets/**")
                         .permitAll()
                         // Auth
                         .requestMatchers("/auth/**").permitAll()
@@ -84,7 +84,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:8080", "http://localhost:8000"));
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173", 
+            "http://localhost:8080", 
+            "http://localhost:8000",
+            "https://souplesse-pilate.onrender.com"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

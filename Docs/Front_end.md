@@ -2,13 +2,16 @@
 
 *Souplesse Pilates Studio User Interface*
 
-This document is the source of truth for the Souplesse Pilates frontend. It explains the Vanilla architecture, the JavaScript API bridge, the DOM manipulation strategy, and explicitly maps the critical coupling points.
+This document serves as the source of truth for the Souplesse Pilates frontend. It explains the modernized React architecture, the modular bundle system, the state management strategy, and the unified UI library.
 
 ---
 
 ## 1. Architectural Philosophy
 
-The frontend uses **Vanilla HTML5, CSS3, and ES6 JavaScript** — no frameworks, no bundlers, no build step. The UI is served directly by Spring Boot from `src/main/resources/static/`. All API calls use relative paths (e.g., `fetch('/courses')`), meaning **zero CORS configuration is needed** for production.
+The frontend is a **Modernized React Single Page Application (SPA)** that runs entirely through a single entry point (`index.html`). It utilizes a **CDN-based tech stack** for rapid development and deployment:
+- **React 18**: Used for component-based UI rendering.
+- **Babel Standalone**: Performs in-browser JSX transformation, allowing modular development without a build step.
+- **HashRouting**: Uses `ReactRouterDOM` with `createHashRouter` to manage navigation internally without requiring server-side route configuration.
 
 ---
 
@@ -16,165 +19,81 @@ The frontend uses **Vanilla HTML5, CSS3, and ES6 JavaScript** — no frameworks,
 
 ```
 src/main/resources/static/
-├── index.html          # Public landing page + booking flow
-├── login.html          # Admin authentication page
-├── admin.html          # Secure admin dashboard
-├── pilimg.jpeg         # Studio background image
+├── index.html              # The ONLY application entry point
+├── favicon.png             # Site favicon
 ├── css/
-│   ├── style.css       # Global variables, layout, typography
-│   ├── classes.css     # Course cards, grids, booking wizard
-│   └── admin.css       # Dashboard layout, forms, tables
+│   ├── style.css           # Global design system & typography
+│   ├── ui.css              # Library component styles (buttons, inputs, etc.)
+│   ├── classes.css         # Grid layouts & specific section styles
+│   ├── admin.css           # Manager Portal specific layouts
+│   └── login.css           # Auth page styling
 └── js/
-    ├── api.js          # Central API client (fetch wrapper + JWT)
-    ├── courses.js      # CoursesDB & ClientsDB async API bridges
-    ├── main.js         # Homepage logic: hero, booking wizard, testimonials, gallery
-    ├── booking.js      # (Legacy) booking-specific logic
-    ├── admin.js        # Dashboard CRUD: courses, reservations, settings
-    ├── navigation.js   # Navbar scroll effects, mobile menu
-    └── email.js        # Contact form email handling
-```
-
-```mermaid
-graph TD
-    subgraph HTML Pages
-        Index["index.html"]
-        Login["login.html"]
-        Admin["admin.html"]
-    end
-    
-    subgraph Shared JS
-        API["api.js — fetch wrapper + JWT"]
-        Courses["courses.js — CoursesDB & ClientsDB"]
-    end
-    
-    subgraph Page-Specific JS
-        MainJS["main.js — Homepage logic"]
-        AdminJS["admin.js — Dashboard CRUD"]
-        NavJS["navigation.js — Navbar effects"]
-    end
-    
-    subgraph CSS Modules
-        StyleCSS["style.css — Global"]
-        ClassesCSS["classes.css — Cards & Grids"]
-        AdminCSS["admin.css — Dashboard"]
-    end
-
-    Index --> API
-    Index --> Courses
-    Index --> MainJS
-    Index --> NavJS
-    Index --> StyleCSS
-    Index --> ClassesCSS
-    
-    Admin --> API
-    Admin --> Courses
-    Admin --> AdminJS
-    Admin --> StyleCSS
-    Admin --> AdminCSS
-    
-    Login --> API
-    Login --> StyleCSS
+    ├── app.jsx             # SPA Entry Point & Route Definitions
+    └── bundles/
+        ├── lib.js          # Shared Logic: api wrapper, stores, utils, zod schemas
+        ├── ui.jsx          # Primitive Components: Button, Input, Modal, etc.
+        ├── components.jsx  # Reusable UI Patterns: Sidebar, Navbar, etc.
+        ├── home-sections.jsx # Public site domain sections
+        ├── admin-sections.jsx # Manager Portal domain sections
+        └── pages.jsx       # Route-level page components
 ```
 
 ---
 
-## 3. The API Client (`js/api.js`)
+## 3. Core Technologies & Linking
 
-The central module handling **all** communication between the frontend and the Spring Boot backend.
+### State Management (`js/bundles/lib.js`)
+The application uses a **Zustand-compatible `create` function** for global state.
+- **`useAuthStore`**: Manages JWT, user profile, and authentication status.
+- **`useCourseStore`**: Handles course data fetching, filtering, and caching.
+- **`useNotificationStore`**: Global toast system.
 
-### Key Features
-- **Relative Paths**: `API_BASE = ''` — all requests go to the same origin (e.g., `/courses`, `/admin/courses`).
-- **Automatic JWT Injection**: Reads `souplesse_jwt` from `localStorage` and adds `Authorization: Bearer <token>` to every request except `/auth/login`.
-- **Global 401 Handling**: When a `401 Unauthorized` is received, the client automatically clears the stored token and redirects to `/login.html`.
-- **204 No Content**: Properly handles delete responses with no body.
+### API Communication (`js/bundles/lib.js`)
+A unified `api` wrapper handles all REST communication:
+- **JWT Injection**: Automatically adds Bearer tokens to sensitive requests.
+- **Interceptors**: Handles global error states (401 redirection, 500 toasts).
+- **Zod Validation**: Uses `zod` for client-side schema validation before submission.
 
-### Methods
-| Method | Signature | Description |
+---
+
+## 4. UI System (`js/bundles/ui.jsx`)
+
+The system follows a **Design Token** approach defined in `style.css` and implemented via primitive components in `ui.jsx`.
+
+| Component | Purpose |
+| :--- | :--- |
+| `Button` | Themed buttons (primary, secondary, ghost). |
+| `Input` | Validated form inputs with error states. |
+| `Modal` / `Dialog` | Responsive overlay system for bookings and edits. |
+| `Skeleton` | Loading states for data-heavy views. |
+
+---
+
+## 5. Navigation & Routing (`js/app.jsx`)
+
+All navigation is managed by the **HashRouter**.
+
+| Route | Component | Access |
 | :--- | :--- | :--- |
-| `get` | `api.get(endpoint)` | GET request |
-| `post` | `api.post(endpoint, body)` | POST with JSON body |
-| `put` | `api.put(endpoint, body)` | PUT with JSON body |
-| `delete` | `api.delete(endpoint)` | DELETE request |
+| `#/` | `HomePage` | Public |
+| `#/about` | `AboutPage` | Public |
+| `#/pricing` | `PricingPage` | Public |
+| `#/login` | `LoginPage` | Public |
+| `#/admin/*` | `AdminLayout` | **Protected (JWT)** |
 
 ---
 
-## 4. Data Modules (`js/courses.js`)
+## 6. Development Guidelines
 
-### `CoursesDB` — Course API Bridge
+### Adding a New Component
+1. Define the UI in `js/bundles/components.jsx` using standardized `ui.jsx` primitives.
+2. Use design tokens (e.g., `var(--gold)`, `var(--deep)`) for styling.
+3. Ensure responsiveness across mobile (375px) and tablet (768px).
 
-| Method | API Call | Description |
-| :--- | :--- | :--- |
-| `getAll()` | `GET /courses` (public) or `GET /admin/courses` (admin) | Auto-detects page context |
-| `add(data)` | `POST /admin/courses` | Creates a new course |
-| `update(id, data)` | `PUT /admin/courses/{id}` | Updates an existing course |
-| `remove(id)` | `DELETE /admin/courses/{id}` | Deletes a course |
-| `spotsLeft(course)` | — (computed) | Returns `capacity - reservedSpots` |
+### Modifying Domain Logic
+1. Update the appropriate store or Zod schema in `js/bundles/lib.js`.
+2. Update the domain-specific section in `home-sections.jsx` or `admin-sections.jsx`.
 
-**Field Mapping**: The response from the API is transformed to add computed properties:
-- `coach` = `coachFirstName + coachLastName`
-- `dateTime` = `date + 'T' + time`
-- `image` = `imageUrl`
-
-### `ClientsDB` — Reservation API Bridge
-
-| Method | API Call | Description |
-| :--- | :--- | :--- |
-| `getAll()` | `GET /admin/reservations` | Lists all reservations |
-| `add(client)` | `POST /reservations` | Creates a new reservation |
-| `remove(id)` | `DELETE /admin/reservations/{id}` | Deletes a reservation |
-
----
-
-## 5. Page Logic
-
-### Homepage (`index.html` ↔ `main.js`)
-1. On `DOMContentLoaded`, `CoursesDB.getAll()` is called asynchronously.
-2. Course cards are rendered into `#coursesGrid` via template literals.
-3. The **3-step booking wizard** handles: Date/class selection → Details form (Nom, Prénom, Email) → Confirmation via `POST /reservations`.
-4. Testimonials, gallery, and FAQ sections are rendered from local data arrays.
-
-### Admin Dashboard (`admin.html` ↔ `admin.js`)
-1. On load, checks `localStorage` for `souplesse_jwt`. Redirects to `/login.html` if missing.
-2. Fetches all courses and reservations via `CoursesDB.getAll()` and `ClientsDB.getAll()`.
-3. Provides CRUD operations: create/edit/delete courses, view/delete reservations.
-4. Dashboard summary cards show total courses, total reservations, and capacity metrics.
-
-### Login (`login.html`)
-1. Submits credentials to `POST /auth/login`.
-2. On success, stores the JWT token in `localStorage` as `souplesse_jwt`.
-3. Redirects to `/admin.html`.
-
----
-
-## 6. Editing Guidelines: The Impact Matrix
-
-> **⚠️ DANGER: Breaking The DOM Bindings**
-> The JavaScript is heavily coupled to element `#ID`s and `.class` names. Altering HTML IDs or structural wrappers carelessly will instantly break the application silently.
-
-### Impact 1: Changing Element IDs
-- **Example**: Changing `<div id="coursesGrid">` to `<div id="class-list">`.
-- **What breaks**: `main.js` calls `document.getElementById('coursesGrid')` → returns `null` → homepage stays blank.
-- **Fix**: Globally search and replace the ID string in the corresponding `.js` file.
-
-### Impact 2: Changing CSS Grid/Flex Structures
-- **Example**: Altering `.class-card` from `display: flex` to `display: block`.
-- **What breaks**: Visual alignment. Because `main.js` renders card inner HTML as template strings, the parent CSS must match the nested HTML structure.
-
-### Impact 3: Expanding the API Payload
-- **Example**: Backend adds `durationInMinutes` to the Course JSON.
-- **What breaks**: Nothing actively breaks. But to display it, you must edit the template literal in `main.js`:
-  ```javascript
-  `<span class="duration">${course.durationInMinutes} mins</span>`
-  ```
-
----
-
-## 7. Adding New Features (Checklist)
-
-To add a new page (e.g., `instructors.html`):
-1. **Create** `instructors.html` using the global `<nav>` from `index.html`.
-2. **Link** `css/style.css` for base resets and `js/api.js` for API access.
-3. **Create** `js/instructors.js`.
-4. **Backend Call**: Write `api.get('/instructors')` inside your `DOMContentLoaded` handler.
-5. **Render**: Target a predefined `<div id="instructor-roster">` and inject parsed HTML strings.
-6. **Security**: Ensure the new endpoint is added to `SecurityConfig.java` with the correct access level (`permitAll()` or `.hasRole("ADMIN")`).
+### Testing Changes
+- **Hot Reload**: Refresh the browser to see CSS/HTML/JS changes instantly.
+- **Mocking**: Use the `seed-running` profile on the backend to provide a rich dataset for UI testing.

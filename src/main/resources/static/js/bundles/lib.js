@@ -21,7 +21,7 @@ const api = {
             const response = await fetch(`${API_BASE}${endpoint}`, config);
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Critical: Use the store to clear state across the whole app
+                    // Only logout on real 401 Unauthorized errors
                     if (window.useAuthStore) {
                         window.useAuthStore.getState().logout();
                     } else {
@@ -29,13 +29,20 @@ const api = {
                     }
                     window.location.hash = '#/login';
                 }
-                // Ignore empty bodies for errors
+                
+                // For other errors (500, etc.), parse message and re-throw
                 let errorData;
                 try {
                      errorData = await response.json();
                 } catch(e) {
-                     errorData = { message: `API Error: ${response.status} ${response.statusText}` };
+                     errorData = { message: `Erreur Serveur: ${response.status} ${response.statusText}` };
                 }
+                
+                // Notify the user if toast is available
+                if (window.useToastStore) {
+                    window.useToastStore.getState().showToast(errorData.message || errorData.error || "Une erreur est survenue", "error");
+                }
+                
                 throw errorData;
             }
             
@@ -554,3 +561,38 @@ window.CoursesDB = CoursesDB;
 window.InstructorsDB = InstructorsDB;
 window.ClientsDB = ClientsDB;
 window.ContentDB = ContentDB;
+
+window.SEOManager = {
+    set({ title, description, image, url }) {
+        const fullTitle = title ? `${title} | Souplesse Pilates` : 'Souplesse — Pilates Studio';
+        document.title = fullTitle;
+
+        const updateTag = (selector, attr, content) => {
+            if (!content) return;
+            const el = document.querySelector(selector);
+            if (el) el.setAttribute(attr, content);
+        };
+
+        updateTag('meta[name="description"]', 'content', description);
+        updateTag('meta[property="og:title"]', 'content', fullTitle);
+        updateTag('meta[property="og:description"]', 'content', description);
+        updateTag('meta[property="og:image"]', 'content', image);
+        updateTag('meta[property="og:url"]', 'content', url);
+        updateTag('meta[property="twitter:title"]', 'content', fullTitle);
+        updateTag('meta[property="twitter:description"]', 'content', description);
+        updateTag('meta[property="twitter:image"]', 'content', image);
+    }
+};
+
+window.useFadeUp = (dependency = []) => {
+  React.useEffect(() => {
+    function observeFadeUps() {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+      }, { threshold: 0.12, rootMargin: "-60px" });
+      document.querySelectorAll('.fade-up:not(.visible)').forEach(el => observer.observe(el));
+    }
+    const timer = setTimeout(observeFadeUps, 300);
+    return () => clearTimeout(timer);
+  }, dependency);
+};

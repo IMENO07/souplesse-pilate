@@ -3,6 +3,7 @@ package souplesse_pilates.studio.souplesse_pilates.services.Impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -10,13 +11,16 @@ import souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests.UpdateIns
 import souplesse_pilates.studio.souplesse_pilates.domain.dtos.requests.UserRequestDto;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.User;
 import souplesse_pilates.studio.souplesse_pilates.domain.enums.UserRole;
+import souplesse_pilates.studio.souplesse_pilates.repositories.CourseRepository;
 import souplesse_pilates.studio.souplesse_pilates.repositories.UserRepository;
 import souplesse_pilates.studio.souplesse_pilates.services.UserService;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public List<User> findAllUsers() {
@@ -92,13 +96,18 @@ public User getAdminByEmail(String email) {
 
     @Override
     public void deleteInstructor(Long id) {
-
         User instructor = userRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Instructor not found"));
 
         if (instructor.getRole() != UserRole.INSTRUCTOR) {
             throw new IllegalArgumentException("User is not an instructor");
         }
+
+        // Détacher l'instructeur des cours avant la suppression
+        courseRepository.findByInstructorId(id).forEach(course -> {
+            course.setInstructor(null);
+            courseRepository.save(course);
+        });
 
         userRepository.delete(instructor);
     }

@@ -4,8 +4,8 @@ function Hero() {
   const [images, setImages] = React.useState([]);
   React.useEffect(() => { ContentDB.getStudioImages().then(res => setImages(res.map(i=>i.imageUrl))); }, []);
 
-  const bgImg = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1600&q=80';
-  const cardImg = images.length > cardIdx ? images[cardIdx] : (images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80');
+  const bgImg = images.length > 0 ? images[0] : 'studio-hero.jpg';
+  const cardImg = images.length > cardIdx ? images[cardIdx] : (images.length > 0 ? images[0] : 'studio-hero.jpg');
 
   return (
     <section id="hero">
@@ -46,8 +46,8 @@ function StudioShowcase() {
   const [images, setImages] = React.useState([]);
   React.useEffect(() => { ContentDB.getStudioImages().then(res => setImages(res.map(i=>i.imageUrl))); }, []);
 
-  const img1 = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80';
-  const img2 = images.length > 1 ? images[1] : 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=80';
+  const img1 = images.length > 0 ? images[0] : 'studio-hero.jpg';
+  const img2 = images.length > 1 ? images[1] : 'studio-detail.jpg';
 
   return (
     <section id="studio">
@@ -89,7 +89,7 @@ function StudioShowcase() {
   );
 }
 /* ── Courses Grid Section ──────────────────────── */
-function CoursesGrid({ courses, onBook }) {
+function CoursesGrid({ courses, loading, onBook }) {
   return (
     <section id="classes">
       <div className="section-header fade-up">
@@ -97,7 +97,11 @@ function CoursesGrid({ courses, onBook }) {
         <h2 className="section-title">Bibliothèque de Classes</h2>
       </div>
       <div className="courses-grid" id="coursesGrid">
-        {(!courses || courses.length === 0) ? (
+        {loading ? (
+            [1,2,3].map(i => (
+                <div key={i} className="course-card ui-skeleton" style={{ height: '400px' }}></div>
+            ))
+        ) : (!courses || courses.length === 0) ? (
           <p style={{ textAlign: 'center', color: 'var(--sand)', fontStyle: 'italic', gridColumn: '1 / -1' }}>
             Aucune classe disponible pour le moment.
           </p>
@@ -334,11 +338,15 @@ function Testimonials() {
   const [idx, setIdx] = React.useState(0);
   const [fade, setFade] = React.useState(true);
   const [testimonials, setTestimonials] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const timerRef = React.useRef(null);
   const tsX = React.useRef(0);
 
   React.useEffect(() => {
-    ContentDB.getTestimonials().then(setTestimonials);
+    ContentDB.getTestimonials().then(res => {
+      setTestimonials(res || []);
+      setLoading(false);
+    });
   }, []);
 
   const goTo = React.useCallback((i) => {
@@ -362,6 +370,15 @@ function Testimonials() {
     return () => clearInterval(timerRef.current);
   }, [testimonials]);
 
+  if (loading) {
+    return (
+      <section id="testimonials">
+        <div className="testimonials-inner">
+           <div className="ui-skeleton" style={{ height: '150px', width: '100%', maxWidth: '600px', margin: '0 auto' }}></div>
+        </div>
+      </section>
+    );
+  }
   if (testimonials.length === 0) return null;
   const t = testimonials[idx] || testimonials[0];
 
@@ -391,9 +408,13 @@ function Testimonials() {
 /* ── Gallery Section ───────────────────────────── */
 function Gallery() {
   const [gallery, setGallery] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    ContentDB.getGallery().then(res => setGallery(res || []));
+    ContentDB.getGallery().then(res => {
+        setGallery(res || []);
+        setLoading(false);
+    });
   }, []);
 
   return (
@@ -403,7 +424,11 @@ function Gallery() {
         <h2 className="section-title fade-up">Notre Communauté</h2>
       </div>
       <div className="gallery-grid" id="galleryGrid">
-        {gallery.map((g, i) => (
+        {loading ? (
+             [1,2,3,4,5,6].map(i => (
+                 <div key={i} className="gallery-cell ui-skeleton" style={{ height: '300px' }}></div>
+             ))
+        ) : gallery.map((g, i) => (
           <div key={i} className="gallery-cell fade-up">
             <img src={g.imageUrl} alt={g.caption} loading="lazy"/>
             {g.featured && <div className="gallery-studio-tag">Studio</div>}

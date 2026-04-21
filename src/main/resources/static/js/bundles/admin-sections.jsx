@@ -1,5 +1,5 @@
 /* ── Admin Stats Section ───────────────────────── */
-function AdminStats({ courses, clients }) {
+function AdminStats({ courses, clients, loading }) {
   const [logCount, setLogCount] = React.useState(0);
 
   React.useEffect(() => {
@@ -27,6 +27,16 @@ function AdminStats({ courses, clients }) {
     return dt > now;
   });
   const booked = courses.reduce((s, c) => s + (c.reservedSpots || 0), 0);
+
+  if (loading) {
+    return (
+      <div className="stats-row">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="stat-card ui-skeleton" style={{ height: '100px', border: 'none' }}></div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="stats-row">
@@ -456,12 +466,15 @@ function CourseForm({ editingCourse, onSave, onCancel }) {
   async function handleSubmit() {
     setError('');
     
+    // Find selected instructor details
+    const selectedInst = instructors.find(i => String(i.id) === String(instructorId));
+    
     // Quick validation overrides for Zod schema
     const payload = {
       title: title.trim(),
-      coachFirstName: 'Coach',
-      coachLastName: 'Name',
-      coachEmail: 'coach@example.com',
+      coachFirstName: selectedInst ? selectedInst.firstName : 'Coach',
+      coachLastName: selectedInst ? selectedInst.lastName : 'Name',
+      coachEmail: selectedInst ? selectedInst.email : 'coach@example.com',
       description: description.trim(),
       dateTime: dateTime,
       capacity: capacity,
@@ -558,7 +571,7 @@ function CourseForm({ editingCourse, onSave, onCancel }) {
   );
 }
 /* ── Courses Table Section ──────────────────────── */
-function CoursesTable({ courses, onEdit, onDelete }) {
+function CoursesTable({ courses, loading, onEdit, onDelete }) {
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState('');
   const [page, setPage] = React.useState(1);
@@ -717,7 +730,19 @@ function CoursesTable({ courses, onEdit, onDelete }) {
                 </tr>
               </thead>
               <tbody>
-                {currentData.length === 0 ? (
+                {loading ? (
+                    [1,2,3,4,5].map(i => (
+                        <tr key={i}>
+                            <td><div className="ui-skeleton" style={{ width: 16, height: 16 }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '80%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '60%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '40%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '30%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '50%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '70px' }}></div></td>
+                        </tr>
+                    ))
+                ) : currentData.length === 0 ? (
                   <tr><td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
                 ) : currentData.map(c => {
                   const spots = CoursesDB.spotsLeft(c);
@@ -844,7 +869,7 @@ function ClientForm({ courses, onSave, onCancel }) {
   );
 }
 /* ── Clients Table Section ──────────────────────── */
-function ClientsTable({ clients, onEdit, onDelete }) {
+function ClientsTable({ clients, loading, onEdit, onDelete }) {
   const [search, setSearch] = React.useState('');
   const [category, setCategory] = React.useState('');
   const [page, setPage] = React.useState(1);
@@ -995,8 +1020,19 @@ function ClientsTable({ clients, onEdit, onDelete }) {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {currentData.length === 0 ? (
+               <tbody>
+                {loading ? (
+                    [1,2,3,4,5].map(i => (
+                        <tr key={i}>
+                            <td><div className="ui-skeleton" style={{ width: 16, height: 16 }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '80%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '60%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '40%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '50%' }}></div></td>
+                            <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '70px' }}></div></td>
+                        </tr>
+                    ))
+                ) : currentData.length === 0 ? (
                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>Aucun résultat.</td></tr>
                 ) : currentData.map(cl => (
                   <tr key={cl.id} className={selectedIds.has(cl.id) ? 'row-selected' : ''}>
@@ -1181,9 +1217,17 @@ function InstructorsTable({ instructors, loading, onEdit, onDelete }) {
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
-          <tbody>
+           <tbody>
             {loading ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '60px' }}><Spinner /></td></tr>
+                [1,2,3,4,5].map(i => (
+                    <tr key={i}>
+                        <td><div className="ui-skeleton" style={{ width: 16, height: 16 }}></div></td>
+                        <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '80%' }}></div></td>
+                        <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '60%' }}></div></td>
+                        <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '40%' }}></div></td>
+                        <td><div className="ui-skeleton ui-skeleton-text" style={{ width: '70px' }}></div></td>
+                    </tr>
+                ))
             ) : filtered.length === 0 ? (
               <tr><td colSpan="5" style={{ textAlign: 'center', padding: '60px', color: '#888' }}>Aucun instructeur trouvé.</td></tr>
             ) : (

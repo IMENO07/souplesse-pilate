@@ -3,6 +3,28 @@
    Design tokens from style.css (var(--deep), var(--ocean), etc.)
    ═══════════════════════════════════════════════════════════ */
 
+/* ── UTILS & ACCESSIBILITY ──────────────────────────────── */
+@media (max-width: 600px) {
+  .ui-input, .ui-btn, .ui-select, .ui-textarea {
+    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    min-height: 44px;
+  }
+}
+
+/* ── DIALOG RESPONSIVENESS ──────────────────────────────── */
+@media (max-width: 768px) {
+  .ui-dialog--md, .ui-dialog--lg, .ui-dialog--sm {
+    width: 92% !important;
+    margin: 16px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .ui-dialog-header { padding: 20px 24px 12px; }
+  .ui-dialog-body { padding: 12px 24px 24px; }
+  .ui-dialog-footer { padding: 16px 24px; flex-direction: column; gap: 12px; }
+  .ui-dialog-footer .ui-btn { width: 100%; }
+}
+
 /* ── Button ─────────────────────────────────────────────── */
 .ui-btn {
   display: inline-flex;
@@ -418,4 +440,86 @@ select option {
 }
 .admin-table tr:hover {
     background-color: rgba(0,0,0,0.02);
+}
+
+/* ── Skeleton Loading ───────────────────────────── */
+/* ── Skeleton Loading ──────────────────────────────── */
+.ui-skeleton {
+    background: linear-gradient(90deg, #e5e0d8 25%, #f2ede6 50%, #e5e0d8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+.ui-skeleton-text { height: 1em; margin-bottom: 0.5em; border-radius: 2px; }
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── Sub-Pages (About / Pricing) ─────────────────── */
+.subpage-wrapper {
+    background: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.subpage-header {
+    padding: 180px 0 80px;
+    background: #fdfcfa;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+.subpage-content { padding: 100px 0; }
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    line-height: 1.8;
+}
+.about-grid h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    margin-bottom: 24px;
+    color: var(--deep);
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: -40px;
+}
+.pricing-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.pricing-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+.pricing-name { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var(--sand); margin-bottom: 15px; }
+.pricing-price { font-family: 'Cormorant Garamond', serif; font-size: 42px; color: var(--deep); margin-bottom: 20px; }
+.pricing-desc { color: #666; font-size: 15px; margin-bottom: 30px; }
+.pricing-features { list-style: none; padding: 0; margin: 0 0 40px; border-top: 1px solid #f0f0f0; padding-top: 20px; }
+.pricing-features li { padding: 8px 0; font-size: 14px; position: relative; padding-left: 24px; color: #444; }
+.pricing-features li::before { content: "✓"; position: absolute; left: 0; color: var(--sand); }
+
+.pricing-note { text-align: center; margin-top: 60px; color: #888; font-size: 13px; font-style: italic; }
+
+@media (max-width: 991px) {
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+/* Dark mode skeletons (for dialogs/consoles) */
+.ui-dialog .ui-skeleton {
+    background-color: rgba(255, 255, 255, 0.05);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
 }

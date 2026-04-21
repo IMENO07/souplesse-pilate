@@ -7,39 +7,48 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import souplesse_pilates.studio.souplesse_pilates.domain.dtos.responses.ErrorResponseDto;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ResponseEntity<ErrorResponseDto> buildResponse(HttpStatus status, String message, Map<String, String> details) {
+        return ResponseEntity.status(status).body(
+            ErrorResponseDto.builder()
+                .status("error")
+                .code(status.value())
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .details(details)
+                .build()
+        );
+    }
+
     // Course full
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", ex.getMessage()));
+    public ResponseEntity<ErrorResponseDto> handleIllegalState(IllegalStateException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
     // Duplicate booking or bad role assignment
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(Map.of("error", ex.getMessage()));
+    public ResponseEntity<ErrorResponseDto> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null);
     }
 
     // Entity not found
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(EntityNotFoundException ex) {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(Map.of("error", ex.getMessage()));
+    public ResponseEntity<ErrorResponseDto> handleNotFound(EntityNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
     // Validation errors (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponseDto> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = ex.getBindingResult()
             .getFieldErrors()
             .stream()
@@ -48,6 +57,12 @@ public class GlobalExceptionHandler {
                 f -> f.getDefaultMessage(),
                 (a, b) -> a
             ));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation échouée", errors);
+    }
+
+    // Generic fallback for any other exception
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Une erreur interne est survenue", Map.of("debug", ex.getMessage()));
     }
 }
