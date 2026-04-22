@@ -1,6 +1,11 @@
 # Comprehensive Frontend Architecture Manual
 
-*Souplesse Pilates Studio User Interface*
+[🇬🇧 English](#-english) | [🇫🇷 Français](#-français)
+
+---
+
+<a name="-english"></a>
+## 🇬🇧 English Guide
 
 This document serves as the source of truth for the Souplesse Pilates frontend. It explains the modernized React architecture, the modular bundle system, the state management strategy, and the unified UI library.
 
@@ -90,10 +95,89 @@ All navigation is managed by the **HashRouter**.
 2. Use design tokens (e.g., `var(--gold)`, `var(--deep)`) for styling.
 3. Ensure responsiveness across mobile (375px) and tablet (768px).
 
-### Modifying Domain Logic
-1. Update the appropriate store or Zod schema in `js/bundles/lib.js`.
-2. Update the domain-specific section in `home-sections.jsx` or `admin-sections.jsx`.
+---
 
-### Testing Changes
-- **Hot Reload**: Refresh the browser to see CSS/HTML/JS changes instantly.
-- **Mocking**: Use the `seed-running` profile on the backend to provide a rich dataset for UI testing.
+<a name="-français"></a>
+## 🇫🇷 Manuel Complet de l'Architecture Frontend
+
+*Interface Utilisateur du Studio Souplesse Pilates*
+
+Ce document sert de source unique de vérité pour le frontend de Souplesse Pilates. Il explique l'architecture React modernisée, le système de bundles modulaires, la stratégie de gestion d'état et la bibliothèque UI unifiée.
+
+---
+
+## 1. Philosophie Architecturale
+
+Le frontend est une **Application à Page Unique (SPA) React modernisée** qui s'exécute entièrement via un seul point d'entrée (`index.html`). Il utilise une **stack technologique via CDN** pour un développement rapide :
+- **React 18** : Utilisé pour le rendu de l'interface basé sur des composants.
+- **Babel Standalone** : Effectue la transformation JSX directement dans le navigateur, permettant un développement modulaire sans étape de build.
+- **HashRouting** : Utilise `ReactRouterDOM` avec `createHashRouter` pour gérer la navigation en interne sans configuration serveur supplémentaire.
+
+---
+
+## 2. Structure des Dossiers & Carte des Fichiers
+
+```
+src/main/resources/static/
+├── index.html              # Point d'entrée UNIQUE de l'application
+├── css/
+│   ├── style.css           # Système de design global & typographie
+│   ├── ui.css              # Styles de la bibliothèque de composants
+│   └── ...
+└── js/
+    ├── app.jsx             # Point d'entrée SPA & Définition des routes
+    └── bundles/
+        ├── lib.js          # Logique partagée : wrapper api, stores, utils, schémas zod
+        ├── ui.jsx          # Composants Primitifs : Button, Input, Modal, etc.
+        ├── components.jsx  # Patrons UI réutilisables : Sidebar, Navbar, etc.
+        └── ...
+```
+
+---
+
+## 3. Technologies Clés & Liens
+
+### Gestion d'État (`js/bundles/lib.js`)
+L'application utilise une fonction `create` **compatible avec Zustand** pour l'état global.
+- **`useAuthStore`** : Gère le JWT, le profil utilisateur et le statut d'authentification.
+- **`useCourseStore`** : Gère la récupération, le filtrage et le cache des données de cours.
+- **`useNotificationStore`** : Système global de notifications (toasts).
+
+### Communication API (`js/bundles/lib.js`)
+Un wrapper `api` unifié gère toutes les communications REST :
+- **Injection JWT** : Ajoute automatiquement les tokens Bearer aux requêtes sensibles.
+- **Intercepteurs** : Gère les erreurs globales (redirection 401, toasts 500).
+- **Validation Zod** : Utilise `zod` pour la validation de schéma côté client avant soumission.
+
+---
+
+## 4. Système UI (`js/bundles/ui.jsx`)
+
+Le système suit une approche par **Design Tokens** définis dans `style.css` et implémentés via des composants primitifs dans `ui.jsx`.
+
+| Composant | Objectif |
+| :--- | :--- |
+| `Button` | Boutons thématiques (primary, secondary, ghost). |
+| `Input` | Champs de formulaire validés avec gestion d'erreurs. |
+| `Modal` / `Dialog` | Système de calques réactifs pour les réservations et éditions. |
+
+---
+
+## 5. Navigation & Routage (`js/app.jsx`)
+
+Toute la navigation est gérée par le **HashRouter**.
+
+| Route | Composant | Accès |
+| :--- | :--- | :--- |
+| `#/` | `HomePage` | Public |
+| `#/login` | `LoginPage` | Public |
+| `#/admin/*` | `AdminLayout` | **Protégé (JWT)** |
+
+---
+
+## 6. Directives de Développement
+
+### Ajouter un Nouveau Composant
+1. Définissez l'interface dans `js/bundles/components.jsx` en utilisant les primitives standard de `ui.jsx`.
+2. Utilisez les design tokens (ex: `var(--gold)`, `var(--deep)`) pour le style.
+3. Assurez-vous de la réactivité sur mobile (375px) et tablette (768px).
