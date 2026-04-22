@@ -1,0 +1,98 @@
+# 🕊️ Souplesse Pilates - Unified Launcher (PowerShell)
+# ==================================================
+
+$ErrorActionPreference = "Stop"
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+function Show-Header {
+    Clear-Host
+    Write-Host "==========================================" -ForegroundColor Cyan
+    Write-Host "Souplesse Pilates - Unified Launcher" -ForegroundColor Cyan
+    Write-Host "==========================================" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Check-Environment {
+    $javaOk = $false
+    try {
+        $javaVersion = java -version 2>&1 | Out-String
+        if ($javaVersion -match "version ""(\d+)") {
+            $major = [int]$Matches[1]
+            if ($major -ge 21) {
+                Write-Host "[OK] Found Java $major" -ForegroundColor Green
+                $javaOk = $true
+            } else {
+                Write-Host "[WARN] Java version $major is too old (Required: 21+)" -ForegroundColor Yellow
+            }
+        }
+    } catch {
+        Write-Host "[ERROR] Java not found." -ForegroundColor Red
+    }
+
+    $dockerOk = $false
+    try {
+        docker version --format '{{.Server.Version}}' > $null 2>&1
+        Write-Host "[OK] Found Docker" -ForegroundColor Green
+        $dockerOk = $true
+    } catch {
+        Write-Host "[WARN] Docker not running or not installed." -ForegroundColor Yellow
+    }
+
+    return @{ Java = $javaOk; Docker = $dockerOk }
+}
+
+function Setup-DotEnv {
+    if (-not (Test-Path ".env")) {
+        if (Test-Path ".env.example") {
+            Copy-Item ".env.example" ".env"
+            Write-Host "[INFO] Created .env from .env.example" -ForegroundColor Gray
+        }
+    }
+}
+
+Show-Header
+Setup-DotEnv
+$EnvInfo = Check-Environment
+
+Write-Host "`nChoose Running Mode:" -ForegroundColor White
+Write-Host "[1] Docker Mode (Full Stack: App + DB in Docker)"
+Write-Host "[2] Hybrid Mode (DB in Docker, App runs Natively)"
+Write-Host "[3] Native Mode (Use your local PostgreSQL)"
+Write-Host "[4] Portable Mode (Zero-Config)"
+Write-Host "[5] Cleanup (Reset environment)"
+Write-Host "[Q] Quit"
+
+$choice = Read-Host "`nSelect mode [Default=1]"
+if ($choice -eq "") { $choice = "1" }
+
+switch ($choice) {
+    "1" {
+        if (-not $EnvInfo.Docker) { Write-Host "[ERROR] Docker is required for this mode." -ForegroundColor Red; return }
+        Write-Host "[RUN] Starting Full Stack Docker..." -ForegroundColor Magenta
+        ./scripts/docker-run.bat
+    }
+    "2" {
+        if (-not $EnvInfo.Docker) { Write-Host "[ERROR] Docker is required for this mode." -ForegroundColor Red; return }
+        Write-Host "[RUN] Starting Hybrid Mode..." -ForegroundColor Magenta
+        docker compose up -d db
+        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+    }
+    "3" {
+        if (-not $EnvInfo.Java) { Write-Host "[ERROR] Java 21+ is required." -ForegroundColor Red; return }
+        Write-Host "[RUN] Starting Native Mode..." -ForegroundColor Magenta
+        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+    }
+    "4" {
+        Write-Host "[RUN] Starting Portable Mode..." -ForegroundColor Magenta
+        ./run.bat 4
+    }
+    "5" {
+        Write-Host "[RUN] Cleaning up..."
+        ./scripts/clean.bat
+    }
+    "q" { exit }
+    Default { Write-Host "❌ Invalid option." -ForegroundColor Red }
+}
+
+Write-Host "`nPress any key to exit..."
+$null = [Console]::ReadKey($true)

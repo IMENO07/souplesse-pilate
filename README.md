@@ -15,22 +15,20 @@
 
 ### 🚀 Launch Methods
 
-#### **Method 1: Docker (Easiest)**
-Isolates the DB and app. No local PG installation required.
-- **Windows**: Run `docker-run.bat`.
-- **Linux/Mac**: Run `./docker-run.sh`.
-- **Access**: App at [http://localhost:8081](http://localhost:8081) | DB at port `5434`.
+#### **One Launcher to Rule Them All**
+We've unified all launch options into single scripts for each OS:
+- **Windows**: Run `run.bat` (CMD) or `.\run.ps1` (PowerShell)
+- **Linux/Mac**: Run `./run.sh`
 
-#### **Method 2: Native Dev (Java + Local PG)**
-Best for core development with immediate feedback.
-- **Setup**: Create DB `souplesse_pilates`. Configure `.env`.
-- **Run**:
-    - **Windows**: Run `run.bat` → Option 2.
-    - **Linux/Mac**: Run `./run.sh`.
-- **Access**: App at [http://localhost:8080](http://localhost:8080).
+These scripts will let you choose between:
+1. **Docker Mode** (Full Stack: App + DB in Docker)
+2. **Hybrid Mode** (DB in Docker, App runs Natively)
+3. **Native Mode** (Use your local PostgreSQL)
+4. **Portable Mode** (Windows only - Zero config)
+5. **Cleanup** (Reset the environment)
 
-#### **Method 3: Zero-Config (Portable Mode)**
-- **Windows Only**: Run `run.bat` → Option 3. Automatically downloads JDK and runs portable PostgreSQL.
+#### **Quick Access**
+- Application: [http://localhost:8080](http://localhost:8080) (8081 if in Full Docker mode)
 
 ---
 

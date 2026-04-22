@@ -3,11 +3,11 @@
 # Configuration for local development using Docker
 # This script starts the database and the application in separate containers
 
-echo "🐳 Starting Souplesse Pilates Local Environment (Docker)..."
+echo "Starting Souplesse Pilates Local Environment (Docker)..."
 
 # Ensure docker-compose is available
 if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-    echo "❌ Error: Docker Compose is not installed. Please install it to continue."
+    echo "[ERROR] Docker Compose is not installed. Please install it to continue."
     exit 1
 fi
 
@@ -19,14 +19,14 @@ fi
 
 # Run the local compose file with optional profile
 PROFILE=${1:-prod}
-echo "🔧 Using profile: $PROFILE"
+echo "[INFO] Using profile: $PROFILE"
 
 SPRING_PROFILES_ACTIVE=$PROFILE $DOCKER_CMD -f docker-compose.local.yml up --build -d
 
 echo "----------------------------------------------------"
-echo "✅ Local environment is starting!"
-echo "📱 App will be available at: http://localhost:8081"
-echo "🗄️ Database is mapped to port: 5434"
+echo "[OK] Local environment is starting!"
+echo "[INFO] App will be available at: http://localhost:8081"
+echo "[INFO] Database is mapped to port: 5434"
 echo "----------------------------------------------------"
-echo "💡 To see logs, run: $DOCKER_CMD -f docker-compose.local.yml logs -f"
-echo "💡 To stop, run: $DOCKER_CMD -f docker-compose.local.yml down"
+echo "[TIP] To see logs, run: $DOCKER_CMD -f docker-compose.local.yml logs -f"
+echo "[TIP] To stop, run: $DOCKER_CMD -f docker-compose.local.yml down"

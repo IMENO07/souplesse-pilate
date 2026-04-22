@@ -23,25 +23,24 @@ cd souplesse-pilate
 ```
 
 ### 2. Configure Environment
-Copy the example environment file and customize it if needed:
-```bash
-cp .env.example .env
-```
+The application will automatically create a `.env` file from `.env.example` on first run if it's missing.
 
 ### 3. Run the Application
-Choose your preferred method below:
+Use the unified launcher for your OS:
+- **Windows**: `run.bat`
+- **Linux/Mac**: `./run.sh`
 
-#### **Method A: Docker (Recommended)**
-Best for a consistent environment without installing PostgreSQL locally.
-- **Windows**: Run `docker-run.bat` (automatically seeds sample data).
-- **Linux/Mac**: Run `./docker-run.sh` (automatically seeds sample data).
+The launcher provides several modes:
+- **Docker Mode**: Runs everything in Docker. Port **8081**.
+- **Hybrid Mode**: Runs DB in Docker, App natively. Port **8080**.
+- **Native Mode**: Uses your local PostgreSQL. Port **8080**.
+- **Portable Mode**: (Windows) Zero-config mode. Port **8080**.
 
 #### **Method B: Native Development**
 Best for fast development with hot-reload (IDE). Requires a local PostgreSQL.
 1. Ensure PostgreSQL is running and you've created a database named `souplesse_pilates`.
 2. Update `.env` with your DB credentials.
-3. **Windows**: Run `run.bat` and select **Option 2**.
-4. **Linux/Mac**: Run `./run.sh`.
+3. Run the launcher and select **Native Mode**.
 
 ---
 

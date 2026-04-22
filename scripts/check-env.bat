@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ==========================================
-echo 🕊️  Souplesse Pilates - Environment Check
+echo Souplesse Pilates - Environment Check
 echo ==========================================
 
 set "JAVA_REQUIRED=21"
@@ -20,25 +20,25 @@ if %errorlevel% equ 0 (
             if "!JMAJOR!"=="1" (
                 for /f "delims=. tokens=2" %%v in ("!JVER!") do set "JMAJOR=%%v"
             )
-            echo ✅ Found Java version: !JVER! (Major: !JMAJOR!)
+            echo [OK] Found Java version: !JVER! (Major: !JMAJOR!)
             if !JMAJOR! geq %JAVA_REQUIRED% (
                 set "JAVA_FOUND=1"
             ) else (
-                echo ⚠️  Java version is below required %JAVA_REQUIRED%.
+                echo [WARN] Java version is below required %JAVA_REQUIRED%.
             )
         )
     )
 ) else (
-    echo ❌ Java not found in PATH.
+    echo [ERROR] Java not found in PATH.
 )
 
 :: Check Docker
 docker --version >nul 2>&1
 if %errorlevel% equ 0 (
-    echo ✅ Found Docker.
+    echo [OK] Found Docker.
     set "DOCKER_FOUND=1"
 ) else (
-    echo ⚠️  Docker not found. (Required for PostgreSQL mode)
+    echo [WARN] Docker not found. (Required for PostgreSQL mode)
 )
 
 echo.
