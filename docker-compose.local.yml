@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/souplesse_pilates
+      - SPRING_DATASOURCE_USERNAME=pilates_user
+      - SPRING_DATASOURCE_PASSWORD=pilates_pass
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=souplesse_pilates
+      - POSTGRES_USER=pilates_user
+      - POSTGRES_PASSWORD=pilates_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_test:

@@ -21,20 +21,41 @@
 
 ## 🚀 Démarrage Rapide
 
-### Avec Docker (Recommandé)
+### 🐳 Via Docker (Windows & Ubuntu) - Recommandé
+C'est la méthode la plus simple qui configure la base de données et l'application automatiquement.
 
+**Sur Ubuntu/Linux :**
 ```bash
-docker compose up --build
+chmod +x docker-run.sh
+./docker-run.sh
 ```
-Accès : [http://localhost:8080](http://localhost:8080)
 
-### En Développement
+**Sur Windows :**
+Double-cliquez sur `docker-run.bat` ou lancez-le dans un terminal.
 
-1. Démarrez la base de données : `docker compose up -d db`
-2. Lancez le serveur avec seeding :
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
-```
+*L'application sera disponible sur [http://localhost:8081](http://localhost:8081).*
+
+> 💡 **Seeding** : Pour lancer avec les données de test (mock data), passez `seed-running` en argument :  
+> `./docker-run.sh seed-running` ou `docker-run.bat seed-running`
+
+---
+
+### 💻 Développement Local (Natif)
+Si vous souhaitez lancer l'application nativement (nécessite Java 21) :
+
+1. **Configurer l'environnement :**
+   Copiez `.env.example` vers `.env` et ajustez les variables si nécessaire.
+
+2. **Lancer la base de données (Docker) :**
+   ```bash
+   docker compose up -d db
+   ```
+
+3. **Lancer l'application :**
+   - **Ubuntu/Linux :** `./run.sh`
+   - **Windows :** `run.bat`
+
+*L'application sera disponible sur [http://localhost:8080](http://localhost:8080).*
 
 ## 🔐 Credentials Par Défaut
 

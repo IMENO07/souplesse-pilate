@@ -34,3 +34,5 @@ build/
 
 src/main/resources/application.yml
 .env
+*.log
+.DS_Store
