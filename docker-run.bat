@@ -14,9 +14,9 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Set profile (default to 'prod' if not provided)
+:: Set profile (default to 'seed-running' if not provided)
 set PROFILE=%1
-if "%PROFILE%"=="" set PROFILE=prod
+if "%PROFILE%"=="" set PROFILE=seed-running
 echo 🔧 Using profile: %PROFILE%
 
 :: Use 'docker compose' (modern)

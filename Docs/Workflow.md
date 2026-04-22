@@ -50,17 +50,11 @@ graph TD
 
 ### Local Development Setup
 
-1. **Start the database** (via Docker):
-   ```bash
-   docker compose up -d db
-   ```
+For a complete guide on setting up your environment, please refer to the [Development Guide](Development.md).
 
-2. **Run the application** with seeded data:
-   ```bash
-   ./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
-   ```
-
-3. **Access the app**: Open `http://localhost:8080` in your browser.
+Quick start:
+1. **Docker Mode**: Run `./docker-run.sh` (Linux/Mac) or `docker-run.bat` (Windows).
+2. **Native Mode**: Run `./run.sh` (Linux/Mac) or `run.bat` (Windows).
 
 ### Making Changes
 

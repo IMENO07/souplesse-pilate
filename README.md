@@ -1,64 +1,73 @@
 # 🕊️ Souplesse — Pilates Studio Management
 
-**Souplesse** est une plateforme studio de Pilates haut de gamme, conçue pour offrir une expérience de réservation fluide aux clients et un tableau de bord analytique puissant pour les gestionnaires.
+**Souplesse** is a premium Pilates studio platform designed for a seamless booking experience and powerful analytics.
+
+[🇫🇷 Français](#-guide-de-démarrage-rapide) | [🇬🇧 English](#-quick-start-guide)
 
 ---
 
-## 🚀 Guide du Contributeur (Windows)
+## 🇬🇧 Quick Start Guide
 
-Si vous venez de cloner le projet sur un nouveau PC, voici les deux méthodes principales pour lancer l'application. **PostgreSQL est obligatoire.**
-
-### 🛠️ Prérequis Communs
+### 📋 Prerequisites
 - **Git**
-- **Java 21** (ou utilisez le setup automatique via `run.bat`)
+- **Java 21**
+- **Docker Desktop** (Optional, recommended)
+
+### 🚀 Launch Methods
+
+#### **Method 1: Docker (Easiest)**
+Isolates the DB and app. No local PG installation required.
+- **Windows**: Run `docker-run.bat`.
+- **Linux/Mac**: Run `./docker-run.sh`.
+- **Access**: App at [http://localhost:8081](http://localhost:8081) | DB at port `5434`.
+
+#### **Method 2: Native Dev (Java + Local PG)**
+Best for core development with immediate feedback.
+- **Setup**: Create DB `souplesse_pilates`. Configure `.env`.
+- **Run**:
+    - **Windows**: Run `run.bat` → Option 2.
+    - **Linux/Mac**: Run `./run.sh`.
+- **Access**: App at [http://localhost:8080](http://localhost:8080).
+
+#### **Method 3: Zero-Config (Portable Mode)**
+- **Windows Only**: Run `run.bat` → Option 3. Automatically downloads JDK and runs portable PostgreSQL.
 
 ---
 
-### 🐳 Méthode 1 : Tout via Docker (Recommandé)
-C'est la méthode la plus simple si vous avez Docker Desktop. Elle isole la base de données et l'application.
+## 🇫🇷 Guide de Démarrage Rapide
 
-1.  **Lancer le script :**
-    Double-cliquez sur `docker-run.bat`.
-2.  **Accès :**
-    - Application : [http://localhost:8081](http://localhost:8081)
-    - Base de données : Connectez votre pgAdmin au port `5434`.
+### 📋 Prérequis
+- **Git**
+- **Java 21**
+- **Docker Desktop** (Optionnel, recommandé)
 
----
+### 🚀 Méthodes de Lancement
 
-### 💻 Méthode 2 : Développement Natif (Java + pgAdmin Local)
-Utilisez cette méthode pour contribuer au code avec un retour immédiat (Hot Reload).
+#### **Méthode 1 : Docker (Le plus simple)**
+Isole la DB et l'app. Pas d'installation locale nécessaire.
+- **Windows** : Lancez `docker-run.bat`.
+- **Linux/Mac** : Lancez `./docker-run.sh`.
+- **Accès** : App sur [http://localhost:8081](http://localhost:8081) | DB sur le port `5434`.
 
-1.  **Configurer PostgreSQL / pgAdmin :**
-    - Créez une base de données `souplesse_pilates`.
-    - Créez un utilisateur `pilates_user` avec le mot de passe `pilates_pass` (ou modifiez le fichier `.env`).
-2.  **Lancer l'Application :**
-    - Lancez **`run.bat`** et choisissez l'option **Native Mode**.
-    - Ou utilisez votre IDE (IntelliJ/Eclipse) en pointant vers `SouplesseApplication.java`.
-3.  **Accès :**
-    - Application : [http://localhost:8080](http://localhost:8080)
-
----
-
-### 🌟 Méthode 3 : Mode "Zéro-Config" (Portable PostgreSQL)
-Si vous n'avez pas encore installé PostgreSQL sur votre PC :
-
-1.  Lancez **`run.bat`**.
-2.  Choisissez **Option 3 (Portable Mode)**.
-3.  Le script s'occupe de tout :
-    - Téléchargement d'un **JDK 21 portable**.
-    - Création et lancement d'un **PostgreSQL portable** dans le dossier `.db` (Port 5433).
+#### **Méthode 2 : Développement Natif**
+- **Setup** : Créez la DB `souplesse_pilates`. Configurez `.env`.
+- **Lancement** :
+    - **Windows** : Lancez `run.bat` → Option 2.
+    - **Linux/Mac** : Lancez `./run.sh`.
+- **Accès** : App sur [http://localhost:8080](http://localhost:8080).
 
 ---
 
-## 🏗️ Structure du Projet
+## 📖 Documentation
+- [Detailed Development Guide](Docs/Development.md)
+- [Architecture & Workflow](Docs/Workflow.md)
+- [API & Back-end](Docs/Back_end.md)
 
-- **Frontend** : `/src/main/resources/static/` (React SPA)
-- **Backend** : Java 21, Spring Boot 4.0.5, Hibernate 7
-- **Scripts :**
-    - `run.bat` : Lanceur universel (Docker / Native / Portable).
-    - `clean.bat` : Réinitialise complètement le projet (stoppe tout et efface les données).
-    - `docker-run.bat` : Lanceur Docker complet.
-- **Database** : **PostgreSQL uniquement** (Docker / Local / Portable)
+## 🏗️ Tech Stack
+- **Frontend**: React SPA (CDN-based), CSS3, Material Design.
+- **Backend**: Java 21, Spring Boot, Hibernate 7.
+- **Database**: PostgreSQL.
+- **Infrastructure**: Docker, Render.
 
-## 🔐 Identifiants par défaut
-- **Admin** : `admin@fitbook.com` / (Mot de passe dans `.env`)
+## 🔐 Default Credentials
+- **Admin**: `admin@souplesse.dz` / `admin123`
