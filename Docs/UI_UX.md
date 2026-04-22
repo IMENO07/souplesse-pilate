@@ -1,6 +1,11 @@
 # UI / UX Design Philosophy
 
-*Creating the "Move Beautifully" Digital Experience*
+[🇬🇧 English](#-english) | [🇫🇷 Français](#-français)
+
+---
+
+<a name="-english"></a>
+## 🇬🇧 English Guide
 
 This document defines the visual and interactive design principles governing the Souplesse Pilates platform. Every UI decision follows the brand identity of luxury fitness — clean, warm, and inviting.
 
@@ -14,51 +19,87 @@ The platform has transition from ad-hoc styling to a **Shared UI System** define
 We use CSS Custom Properties as the source of truth for the brand identity:
 - **`--gold`**: Luxury accents and primary actions.
 - **`--deep`**: Rich charcoal for high-contrast text.
-- **`--ocean`**: Muted teal for secondary brand elements.
-- **`--glass`**: Frosted white backgrounds with `backdrop-filter: blur(10px)` for a premium feel.
-
-### Component Primitives
-- **Buttons**: Consistently sized (min-height 44px for touch) with smooth hover transitions.
-- **Inputs**: 16px minimum font size on mobile to prevent automatic browser zooming (iOS).
-- **Dialogs**: Responsive modals that adapt to 92% width on mobile screens.
+- **`--glass`**: Frosted white backgrounds with blur effect for a premium feel.
 
 ---
 
 ## 2. SPA Interaction Flow
 
-The UI is built as a **Single Page Application** to ensure seamless transitions without full page reloads.
+The UI is built as a **Single Page Application** to ensure seamless transitions.
 
 ### Public Navigation
-- **Hero**: Immersive high-resolution studio imagery with floating centered titles.
-- **Grids**: Dynamic `Courses Grid` and `Gallery Grid` that stack vertically (1 column) on devices < 600px.
-- **Mobile Menu**: A slide-down glassmorphism overlay containing unified site navigation.
+- **Hero**: Immersive studio imagery with floating centered titles.
+- **Grids**: Dynamic grids that stack vertically on mobile.
+- **Mobile Menu**: A slide-down glassmorphism overlay.
 
 ### Manager Portal (Admin)
 - **Fluid Layout**: The dashboard uses a collapsible sidebar strategy.
-- **Mobile Toggle**: A dedicated hamburger button appears on tablet/mobile to toggle the sidebar.
-- **Overlay Focus**: Opening the sidebar triggers a backdrop overlay to focus interaction and provide a clear exit path.
+- **Mobile Toggle**: A dedicated hamburger button on tablet/mobile.
 
 ---
 
 ## 3. Micro-Animations & Feedback
 
 - **State Transitions**: Smooth slides for the booking wizard and mobile menu.
-- **Feedback Loop**: Global toast notifications for successful bookings, login errors, and system updates.
-- **Skeleton States**: Placeholder UI that mirrors the layout during data fetching to reduce perceived latency.
+- **Feedback Loop**: Global toast notifications for successful bookings and errors.
 
 ---
 
 ## 4. Responsive Design Protocol
 
-We follow a **mobile-first** development protocol with specific breakpoints:
-- **Mobile (< 600px)**: 1-column grids, maximized touch targets, enlarged fonts.
+We follow a **mobile-first** development protocol:
+- **Mobile (< 600px)**: 1-column grids, maximized touch targets.
 - **Tablet (600px - 1024px)**: 2-column grids, collapsible admin sidebar.
-- **Desktop (1024px+)**: 3+ column grids, fixed sidebar, full-width layouts.
+- **Desktop (1024px+)**: 3+ column grids, fixed sidebar.
 
 ---
 
-## 5. Accessibility & Performance
+<a name="-français"></a>
+## 🇫🇷 Philosophie du Design UI / UX
 
-- **Semantic HTML**: Proper use of `<nav>`, `<aside>`, `<main>` for screen reader clarity.
-- **Font Optimization**: Specialized loading of *Cormorant Garamond* and *Jost* to prevent layout shifts.
-- **Asset Management**: Use of high-quality web-optimized images via standard `<img>` tags for SEO-friendly rendering.
+*Créer l'Expérience Digitale "Bouger en Beauté"*
+
+Ce document définit les principes de design visuel et interactif régissant la plateforme Souplesse Pilates. Chaque décision UI suit l'identité de marque du fitness de luxe — propre, chaleureuse et accueillante.
+
+---
+
+## 1. Système UI Unifié
+
+La plateforme est passée d'un style ad-hoc à un **Système UI Partagé** défini dans `ui.css` et `ui.jsx`.
+
+### Design Tokens
+Nous utilisons des propriétés CSS personnalisées comme source de vérité :
+- **`--gold`** : Accents de luxe et actions primaires.
+- **`--deep`** : Anthracite riche pour un texte à haut contraste.
+- **`--glass`** : Fonds blancs givrés avec effet de flou pour une sensation premium.
+
+---
+
+## 2. Flux d'Interaction SPA
+
+L'interface est construite comme une **Application à Page Unique** pour garantir des transitions fluides.
+
+### Navigation Publique
+- **Hero** : Imagerie de studio immersive avec des titres centrés flottants.
+- **Grilles** : Grilles dynamiques qui s'empilent verticalement sur mobile.
+- **Menu Mobile** : Un calque en verre (glassmorphism) déroulant.
+
+### Portail Manager (Admin)
+- **Layout Fluide** : Le tableau de bord utilise une stratégie de barre latérale rétractable.
+- **Bouton Mobile** : Un bouton hamburger dédié sur tablette/mobile pour basculer la barre latérale.
+
+---
+
+## 3. Micro-Animations & Feedback
+
+- **Transitions d'État** : Glissements fluides pour l'assistant de réservation et le menu mobile.
+- **Boucle de Rétroaction** : Notifications globales (toasts) pour les réservations réussies et les erreurs.
+
+---
+
+## 4. Protocole de Design Réactif
+
+Nous suivons un protocole de développement **mobile-first** :
+- **Mobile (< 600px)** : Grilles à 1 colonne, cibles tactiles maximisées.
+- **Tablette (600px - 1024px)** : Grilles à 2 colonnes, barre latérale admin rétractable.
+- **Desktop (1024px+)** : Grilles à 3+ colonnes, barre latérale fixe.

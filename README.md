@@ -1,47 +1,79 @@
 # 🕊️ Souplesse — Pilates Studio Management
 
-**Souplesse** est une plateforme studio de Pilates haut de gamme, conçue pour offrir une expérience de réservation fluide aux clients et un tableau de bord analytique puissant pour les gestionnaires.
+**Souplesse** is a premium Pilates studio platform designed for a seamless booking experience and powerful analytics.
 
-![Preview of Souplesse](https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1600&q=80)
+[🇫🇷 Français](#-guide-de-démarrage-rapide) | [🇬🇧 English](#-quick-start-guide)
 
-## 💎 Points Forts
+---
 
-- **Expérience Utilisateur Premium** : Interface fluide avec états de chargement **Skeleton**, animations délicates et navigation par HashRouter.
-- **Portail Manager** : Dashboard complet avec statistiques en temps réel, logs d'activité système et gestion CRUD avancée des classes.
-- **Sécurité de Grade Bancaire** : Authentification stateless via **Spring Security 6** et jetons **JWT** (durée 24h).
-- **SEO & Social Ready** : Gestion dynamique des métadonnées Open Graph et Twitter Cards pour un partage social optimisé.
-- **Zéro Dépendance Node.js** : Le frontend est une SPA React moderne servie directement par le moteur statique de Spring Boot.
+## 🇬🇧 Quick Start Guide
 
-## 🛠️ Stack Technique
+### 📋 Prerequisites
+- **Git**
+- **Java 21**
+- **Docker Desktop** (Optional, recommended)
 
-- **Backend** : Java 21, Spring Boot 4.0.5, Spring Security, Hibernate 7.
-- **Frontend** : React 18 (CDN), Zustand (State), Zod (Validation), Recharts.
-- **Base de Données** : PostgreSQL (Neon / Docker).
-- **Infrastucture** : Docker & Docker Compose.
+### 🚀 Launch Methods
 
-## 🚀 Démarrage Rapide
+#### **One Launcher to Rule Them All**
+We've unified all launch options into single scripts for each OS:
+- **Windows**: Run `run.bat` (CMD) or `.\run.ps1` (PowerShell)
+- **Linux/Mac**: Run `./run.sh`
 
-### Avec Docker (Recommandé)
+These scripts will let you choose between:
+1. **Docker Mode** (Full Stack: App + DB in Docker)
+2. **Hybrid Mode** (DB in Docker, App runs Natively)
+3. **Native Mode** (Use your local PostgreSQL)
+4. **Portable Mode** (Windows only - Zero config)
+5. **Cleanup** (Reset the environment)
 
-```bash
-docker compose up --build
-```
-Accès : [http://localhost:8080](http://localhost:8080)
+#### **Quick Access**
+- Application: [http://localhost:8080](http://localhost:8080) (8081 if in Full Docker mode)
 
-### En Développement
+---
 
-1. Démarrez la base de données : `docker compose up -d db`
-2. Lancez le serveur avec seeding :
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
-```
+## 🇫🇷 Guide de Démarrage Rapide
 
-## 🔐 Credentials Par Défaut
+### 📋 Prérequis
+- **Git**
+- **Java 21**
+- **Docker Desktop** (Optionnel, recommandé)
 
-- **Espace Admin** : `/index.html#/login`
-- **Email** : `admin@fitbook.com`
+### 🚀 Méthodes de Lancement
 
-- **Frontend Integré** : Tous les JS, CSS et HTML du client (et dashboard admin) se trouvent dans `/src/main/resources/static/`. Les requêtes API dans `api.js` utilisent des chemins relatifs (ex: `fetch('/courses')`) sans soucis de CORS.
-- **Configuration** : `src/main/resources/application.yaml`
-- **Filtre Sécurité** : `security/JwtFilter.java` protège `POST /admin/*` tout en laissant `POST /reservations` ou `GET /courses` publics.
-- **Seeding** : `config/seed/RunningSeeder.java` télécharge et implémente des illustrations et des mock classes si le profil "seed-running" est activé.
+#### **Un Lanceur Unique pour Tout**
+Nous avons unifié toutes les options de lancement dans des scripts simples par OS :
+- **Windows** : Lancez `run.bat` (CMD) ou `.\run.ps1` (PowerShell)
+- **Linux/Mac** : Lancez `./run.sh`
+
+Ces scripts vous permettent de choisir entre :
+1. **Mode Docker** (Stack complète : App + DB dans Docker)
+2. **Mode Hybride** (DB dans Docker, App lancée nativement)
+3. **Mode Natif** (Utilise votre PostgreSQL local)
+4. **Mode Portable** (Windows uniquement - Zero config)
+5. **Nettoyage** (Réinitialise l'environnement)
+
+#### **Accès Rapide**
+- Application : [http://localhost:8080](http://localhost:8080) (8081 en mode Full Docker)
+
+---
+
+## 📖 Documentation
+- [Detailed Development Guide](Docs/Development.md)
+- [Architecture & Workflow](Docs/Workflow.md)
+- [API & Back-end](Docs/Back_end.md)
+
+## 🏗️ Tech Stack
+- **Frontend**: React SPA (CDN-based), CSS3, Material Design.
+- **Backend**: Java 21, Spring Boot, Hibernate 7.
+- **Database**: PostgreSQL.
+- **Infrastructure**: Docker, Render.
+
+## 🔐 Default Credentials
+- **Admin**: `admin@souplesse.dz` / `admin123`
+
+## 🗄️ Database Connection
+Connect via pgAdmin/DBeaver:
+- **Port**: `5434` (Docker) / `5432` (Native)
+- **User/Pass**: `pilates_user` / `pilates_pass`
+- **DB Name**: `souplesse_pilates`

@@ -1,5 +1,12 @@
 # Development Operations — Souplesse Pilates
 
+[🇬🇧 English](#-english) | [🇫🇷 Français](#-français)
+
+---
+
+<a name="-english"></a>
+## 🇬🇧 English Guide
+
 This document outlines the development lifecycle, environment management, and hosting strategy for the Souplesse Pilates platform.
 
 ---
@@ -50,15 +57,6 @@ The platform is deployed using a modern cloud-native stack:
 ### Data Persistence
 Instead of local Docker volumes, production persistence is managed by **Neon's** distributed storage layer, ensuring data is never lost across server redeploys.
 
-### Deployment Commands
-```bash
-# Build and start the entire stack
-docker compose up --build -d
-
-# View live logs
-docker compose logs -f app
-```
-
 ---
 
 ## 4. Frontend-Backend Linking
@@ -76,3 +74,74 @@ The platform follows a **Modernized Monolith** architecture:
 1. **Local Dev**: Frontend changes are immediate (refresh browser). Backend changes require `./mvnw spring-boot:run`.
 2. **Data Export/Import**: Admin panel allows exporting/importing system data via XLSX files for manual backups or migrations.
 3. **Logs**: Production logs are routed to `docker compose` logs and optionally to a `crash.log` file in the root directory.
+
+---
+
+<a name="-français"></a>
+## 🇫🇷 Opérations de Développement (DevOps)
+
+Ce document décrit le cycle de vie du développement, la gestion de l'environnement et la stratégie d'hébergement de la plateforme Souplesse Pilates.
+
+---
+
+## 1. Profils d'Environnement
+
+L'application utilise les Profils Spring Boot pour gérer différents modes opérationnels.
+
+| Profil | Objectif | Stratégie de Données |
+| :--- | :--- | :--- |
+| `dev` | Développement local. | Activé par défaut. |
+| `seed-initial` | Démarrage propre en production. | Effacement DB + Création compte Admin. |
+| `seed-running` | Tests interactifs / Démo. | Données d'exemple interactives complètes. |
+| `seed-testing` | Tests unitaires / intégration. | Jeu de données minimal pour tests automatisés. |
+| `prod` | Environnement live. | Persistance des données de production dans Neon PG. |
+
+### Commande d'Activation
+```bash
+# Pour lancer localement avec les données d'exemple
+./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
+```
+
+---
+
+## 2. Seeding de la Base de Données
+
+Le seeding est géré via l'interface `SeedService` et ses implémentations (`InitialSeeder`, `RunningSeeder`).
+
+- **Logique** : Les seeders s'exécutent au démarrage si le profil correspondant est actif.
+- **Sécurité FK** : `RunningSeeder` supprime les données dans l'ordre inverse des dépendances pour garantir l'intégrité.
+- **Récupération Admin** : Si le compte admin est manquant, le `SeedService` recrée automatiquement l'admin par défaut :
+    - **Email** : `admin@souplesse.dz`
+    - **Mot de passe** : `admin123`
+
+---
+
+## 3. Hébergement & Infrastructure
+
+La plateforme est déployée à l'aide d'une stack cloud-native moderne :
+
+- **Serveur d'Application** : **Render** (Web Service).
+  - Les déploiements sont déclenchés via les hooks GitHub.
+  - Le monolithe Spring Boot est packagé en JAR et sert à la fois l'API et la SPA React intégrée.
+- **Base de Données** : **Neon PostgreSQL** (Serverless).
+  - Fournit un environnement PostgreSQL 15 hautement disponible.
+
+### Persistance des Données
+Au lieu de volumes Docker locaux, la persistance en production est gérée par la couche de stockage distribuée de **Neon**, garantissant qu'aucune donnée n'est perdue lors des redéploiements.
+
+---
+
+## 4. Liaison Frontend-Backend
+
+La plateforme suit une architecture de **Monolithe Modernisé** :
+- **Ressources Statiques Intégrées** : L'interface utilisateur est servie depuis `src/main/resources/static`.
+- **Wrapper API** : Un fichier `lib.js` unifié contient l'objet `api` qui gère l'injection JWT et les redirections.
+- **Hash Routing** : Utilise `HashRouter` (via le symbole `#`) pour permettre au serveur de servir un seul `index.html` pendant que le frontend gère les sous-pages.
+
+---
+
+## 5. Workflow Dev-Ops
+
+1. **Dev Local** : Les changements frontend sont immédiats (rafraîchir le navigateur). Les changements backend nécessitent `./mvnw spring-boot:run`.
+2. **Export/Import de Données** : Le panneau d'administration permet d'exporter/importer des données via des fichiers XLSX pour les sauvegardes manuelles.
+3. **Logs** : Les logs de production sont routés vers `docker compose` et optionnellement vers un fichier `crash.log`.
