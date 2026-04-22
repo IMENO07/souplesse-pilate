@@ -1,5 +1,12 @@
 # 🛠️ Development Guide — Souplesse Pilates
 
+[🇬🇧 English](#-english) | [🇫🇷 Français](#-français)
+
+---
+
+<a name="-english"></a>
+## 🇬🇧 English Guide
+
 This guide provides everything you need to get the Souplesse Pilates platform running on your local machine for development.
 
 ---
@@ -90,23 +97,198 @@ The frontend is a React SPA located in `src/main/resources/static/`.
 
 ---
 
-## ❓ Troubleshooting
+## 🐳 Docker & Container Management
 
-### Port 8080 or 5432 is already in use
-Use the **Docker Method** (`docker-run.sh/bat`), which maps the application to **8081** and the database to **5434**.
+The platform uses Docker Compose to orchestrate the application and its PostgreSQL database.
 
-### "Permission Denied" on `.sh` scripts
-Run the following to make scripts executable:
-```bash
-chmod +x *.sh mvnw
-```
+### Core Commands
+- **Start Everything**: `run.bat` (Option 1) or `./run.sh` (Option 1).
+  - Internally calls: `docker compose -f docker-compose.local.yml up --build -d`
+- **View Logs**:
+  ```bash
+  docker compose -f docker-compose.local.yml logs -f
+  ```
+- **Stop Everything**:
+  ```bash
+  docker compose -f docker-compose.local.yml down
+  ```
+- **Stop and Wipe Data**:
+  ```bash
+  docker compose -f docker-compose.local.yml down -v
+  ```
 
-### Changes in Java code not reflecting
-You must restart the Spring Boot application after modifying `.java` files.
+### Container Structure
+- **app**: The Spring Boot Java application (mapped to port **8081**).
+- **db**: PostgreSQL 15 database (mapped to port **5434**).
 
 ---
 
-## 📚 Related Documentation
+## 🐘 Database Management
+
+### Connection Details
+To connect to the database using an external tool (pgAdmin, DBeaver, IntelliJ), use these settings:
+
+| Setting | Value |
+| :--- | :--- |
+| **Host** | `localhost` |
+| **Port** | `5434` (Docker) or `5432` (Native) or `5433` (Portable) |
+| **Database** | `souplesse_pilates` |
+| **User** | `pilates_user` |
+| **Password** | `pilates_pass` |
+
+### Environment Variables (Spring Boot)
+The application looks for these variables in your `.env` file:
+- `SPRING_DATASOURCE_URL`: JDBC URL (e.g., `jdbc:postgresql://localhost:5434/souplesse_pilates`)
+- `SPRING_DATASOURCE_USERNAME`: DB Username
+- `SPRING_DATASOURCE_PASSWORD`: DB Password
+
+---
+
+## 🧪 Data Seeding & Profiles
+
+The application can automatically populate your database with sample data.
+
+### Seeding Profiles
+- **`seed-running`**: Full clean wipe and re-seed with demo data (Instructors, Courses, Testimonials). **Highly recommended for testing.**
+- **`seed-initial`**: Only creates the default admin account. Useful for starting fresh.
+- **`prod`**: No seeding. Standard production-ready mode.
+
+### How to Seed
+1. Open `.env`
+2. Change `SPRING_PROFILES_ACTIVE=seed-running`
+3. Restart the application.
+
+> [!IMPORTANT]
+> The `seed-running` profile will **DELETE all existing data** in the database on startup to ensure a consistent test state.
+
+---
+
+## 🛠️ Deep Troubleshooting
+
+### Port Conflicts
+If you see an error like `Bind for 0.0.0.0:8080 failed: port is already allocated`:
+1. Check if another instance of the app is running.
+2. If you are running Docker, use ports **8081** and **5434** (which the launchers handle automatically).
+3. If still blocked, use the **Cleanup** option in the launcher to kill stray processes.
+
+### Database Connection Refused
+- **Docker**: Ensure the `db` container is running (`docker ps`).
+- **Native**: Ensure your local PostgreSQL service is started.
+- **Portable**: Ensure you have write permissions in the directory so the `.db` folder can be created.
+
+### Environment Variable Issues
+Always ensure your `.env` file exists in the root. If the launcher created it for you, verify the values match your local setup.
+
+---
+
+<a name="-français"></a>
+## 🇫🇷 Guide de Développement
+
+Ce guide fournit tout ce dont vous avez besoin pour faire fonctionner la plateforme Souplesse Pilates sur votre machine locale pour le développement.
+
+---
+
+## 📋 Prérequis
+
+Avant de commencer, assurez-vous d'avoir installé les éléments suivants :
+
+- **Git** : [Télécharger Git](https://git-scm.com/)
+- **Java 21** : Nous recommandons [OpenJDK](https://openjdk.org/).
+- **Docker & Docker Compose** : (Optionnel mais recommandé) [Docker Desktop](https://www.docker.com/products/docker-desktop).
+
+---
+
+## 🚀 Démarrage Rapide
+
+### 1. Cloner le Dépôt
+```bash
+git clone https://github.com/samibentaiba/souplesse-pilate.git
+cd souplesse-pilate
+```
+
+### 2. Configurer l'Environnement
+L'application créera automatiquement un fichier `.env` à partir de `.env.example` lors du premier lancement s'il est manquant.
+
+### 3. Lancer l'Application
+Utilisez le lanceur unifié pour votre OS :
+- **Windows** : `run.bat`
+- **Linux/Mac** : `./run.sh`
+
+Le lanceur propose plusieurs modes :
+- **Mode Docker** : Lance tout dans Docker. Port **8081**.
+- **Mode Hybride** : Base de données dans Docker, App en natif. Port **8080**.
+- **Mode Natif** : Utilise votre PostgreSQL local. Port **8080**.
+- **Mode Portable** : (Windows) Mode sans configuration. Port **8080**.
+
+---
+
+## 🐳 Docker & Gestion des Conteneurs
+
+La plateforme utilise Docker Compose pour orchestrer l'application et sa base de données PostgreSQL.
+
+### Commandes Clés
+- **Tout démarrer** : `run.bat` (Option 1) ou `./run.sh` (Option 1).
+- **Voir les Logs** :
+  ```bash
+  docker compose -f docker-compose.local.yml logs -f
+  ```
+- **Tout arrêter** :
+  ```bash
+  docker compose -f docker-compose.local.yml down
+  ```
+- **Arrêter et supprimer les données** :
+  ```bash
+  docker compose -f docker-compose.local.yml down -v
+  ```
+
+### Structure des Conteneurs
+- **app** : L'application Java Spring Boot (mappée sur le port **8081**).
+- **db** : Base de données PostgreSQL 15 (mappée sur le port **5434**).
+
+---
+
+## 🐘 Gestion de la Base de Données
+
+### Détails de Connexion
+Pour vous connecter à la base de données via un outil externe (pgAdmin, DBeaver), utilisez ces paramètres :
+
+| Paramètre | Valeur |
+| :--- | :--- |
+| **Hôte** | `localhost` |
+| **Port** | `5434` (Docker) ou `5432` (Natif) ou `5433` (Portable) |
+| **Base de données** | `souplesse_pilates` |
+| **Utilisateur** | `pilates_user` |
+| **Mot de passe** | `pilates_pass` |
+
+---
+
+## 🧪 Seeding de Données & Profils
+
+### Profils de Seeding
+- **`seed-running`** : Réinitialisation complète et peuplement avec des données de démo. **Recommandé pour les tests.**
+- **`seed-initial`** : Crée uniquement le compte admin par défaut.
+- **`prod`** : Aucun seeding. Mode prêt pour la production.
+
+### Comment Seeder
+1. Ouvrez `.env`
+2. Changez `SPRING_PROFILES_ACTIVE=seed-running`
+3. Redémarrez l'application.
+
+> [!IMPORTANT]
+> Le profil `seed-running` **SUPPRIMERA toutes les données existantes** au démarrage.
+
+---
+
+## 🛠️ Dépannage Profond
+
+### Conflits de Ports
+Si vous voyez l'erreur `port is already allocated` :
+1. Vérifiez si une autre instance de l'application est lancée.
+2. Utilisez l'option **Cleanup** du lanceur pour tuer les processus orphelins.
+
+---
+
+## 📚 Documentation Connexe
 - [Architecture & Workflow](Workflow.md)
 - [DevOps & Profiles](DevOps.md)
 - [Front-end Architecture](Front_end.md)

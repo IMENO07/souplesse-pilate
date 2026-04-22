@@ -41,18 +41,20 @@ These scripts will let you choose between:
 
 ### 🚀 Méthodes de Lancement
 
-#### **Méthode 1 : Docker (Le plus simple)**
-Isole la DB et l'app. Pas d'installation locale nécessaire.
-- **Windows** : Lancez `docker-run.bat`.
-- **Linux/Mac** : Lancez `./docker-run.sh`.
-- **Accès** : App sur [http://localhost:8081](http://localhost:8081) | DB sur le port `5434`.
+#### **Un Lanceur Unique pour Tout**
+Nous avons unifié toutes les options de lancement dans des scripts simples par OS :
+- **Windows** : Lancez `run.bat` (CMD) ou `.\run.ps1` (PowerShell)
+- **Linux/Mac** : Lancez `./run.sh`
 
-#### **Méthode 2 : Développement Natif**
-- **Setup** : Créez la DB `souplesse_pilates`. Configurez `.env`.
-- **Lancement** :
-    - **Windows** : Lancez `run.bat` → Option 2.
-    - **Linux/Mac** : Lancez `./run.sh`.
-- **Accès** : App sur [http://localhost:8080](http://localhost:8080).
+Ces scripts vous permettent de choisir entre :
+1. **Mode Docker** (Stack complète : App + DB dans Docker)
+2. **Mode Hybride** (DB dans Docker, App lancée nativement)
+3. **Mode Natif** (Utilise votre PostgreSQL local)
+4. **Mode Portable** (Windows uniquement - Zero config)
+5. **Nettoyage** (Réinitialise l'environnement)
+
+#### **Accès Rapide**
+- Application : [http://localhost:8080](http://localhost:8080) (8081 en mode Full Docker)
 
 ---
 
@@ -69,3 +71,9 @@ Isole la DB et l'app. Pas d'installation locale nécessaire.
 
 ## 🔐 Default Credentials
 - **Admin**: `admin@souplesse.dz` / `admin123`
+
+## 🗄️ Database Connection
+Connect via pgAdmin/DBeaver:
+- **Port**: `5434` (Docker) / `5432` (Native)
+- **User/Pass**: `pilates_user` / `pilates_pass`
+- **DB Name**: `souplesse_pilates`
