@@ -32,6 +32,8 @@ When you run the launcher, you will see several options. Choose the one that fit
 | **4. Portable Mode** | **Zero-Config** | Automatically downloads and runs a standalone database. |
 | **5. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
 
+👉 **[View Detailed Step-by-Step Instructions for All Modes](Docs/Running_Guide.md)**
+
 ---
 
 ### 👶 Non-Technical Beginner's Guide

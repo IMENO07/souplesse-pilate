@@ -43,6 +43,8 @@ The launcher provides several modes:
 - **Native Mode**: Uses your local PostgreSQL. Port **8080**.
 - **Portable Mode**: Automatic zero-config setup. Port **8080**.
 
+👉 **[Detailed Step-By-Step Running Guide](Running_Guide.md)**
+
 #### **Method B: Native Development**
 Best for fast development with hot-reload (IDE). Requires a local PostgreSQL.
 1. Ensure PostgreSQL is running and you've created a database named `souplesse_pilates`.
