@@ -5,11 +5,13 @@ services:
     build: .
     ports:
       - "8081:8080"
+    env_file:
+      - .env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/souplesse_pilates
       - SPRING_DATASOURCE_USERNAME=pilates_user
       - SPRING_DATASOURCE_PASSWORD=pilates_pass
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod,seed-running}
     depends_on:
       db:
         condition: service_healthy

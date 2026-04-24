@@ -18,7 +18,7 @@ if ! docker compose version &> /dev/null; then
 fi
 
 # Run the local compose file with optional profile
-PROFILE=${1:-prod}
+PROFILE=${1:-prod,seed-running}
 echo "[INFO] Using profile: $PROFILE"
 
 SPRING_PROFILES_ACTIVE=$PROFILE $DOCKER_CMD -f docker-compose.local.yml up --build -d
