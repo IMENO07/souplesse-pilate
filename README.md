@@ -20,6 +20,18 @@ We've unified all launch options into single scripts for each OS:
 - **Windows**: Run `run.bat` (CMD) or `.\run.ps1` (PowerShell)
 - **Linux/Mac**: Run `./run.sh`
 
+#### **Detailed Mode Guide**
+
+When you run the launcher, you will see several options. Choose the one that fits your situation:
+
+| Mode | Best For... | What it does |
+| :--- | :--- | :--- |
+| **1. Docker Mode** | **Quick Start** (Recommended) | Runs both the website and the database inside Docker. No local setup needed. |
+| **2. Hybrid Mode** | **Frontend/Backend Dev** | Runs only the Database in Docker. The App runs on your machine for faster coding. |
+| **3. Native Mode** | **Custom Database** | Uses your own local PostgreSQL installation. Requires manual setup. |
+| **4. Portable Mode** | **Zero-Config** | Automatically downloads and runs a standalone database. |
+| **5. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
+
 ---
 
 ### 👶 Non-Technical Beginner's Guide
@@ -59,6 +71,18 @@ If you are not a developer and just want to run the platform, follow these simpl
 Nous avons unifié toutes les options de lancement dans des scripts simples par OS :
 - **Windows** : Lancez `run.bat` (CMD) ou `.\run.ps1` (PowerShell)
 - **Linux/Mac** : Lancez `./run.sh`
+
+#### **Guide Détaillé des Modes**
+
+Lorsque vous lancez le script, plusieurs options s'offrent à vous :
+
+| Mode | Recommandé pour... | Ce qu'il fait |
+| :--- | :--- | :--- |
+| **1. Mode Docker** | **Démarrage Rapide** | Lance le site et la base de données dans Docker. Aucune configuration locale requise. |
+| **2. Mode Hybride** | **Développement Actif** | Lance uniquement la base de données dans Docker. L'application tourne sur votre machine. |
+| **3. Mode Natif** | **Base de Données Locale** | Utilise votre propre installation PostgreSQL locale. |
+| **4. Mode Portable** | **Zéro Configuration** | Télécharge et lance automatiquement une base de données autonome. |
+| **5. Nettoyage** | **Résoudre les Problèmes** | Arrête tous les processus et vide les données résiduelles. |
 
 ---
 
