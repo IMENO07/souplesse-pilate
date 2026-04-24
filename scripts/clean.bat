@@ -33,7 +33,6 @@ if exist "%~dp0..\.db\data" (
 
 :: Environment & Build Cleanup
 echo [CLEAN] Removing temporary files...
-if exist "%~dp0..\.env" del "%~dp0..\.env"
 if exist "%~dp0..\target" rd /s /q "%~dp0..\target"
 if exist "%~dp0..\logfile.txt" del "%~dp0..\logfile.txt"
 if exist "%~dp0..\.db\logfile.txt" del "%~dp0..\.db\logfile.txt"

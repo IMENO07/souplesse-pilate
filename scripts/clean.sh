@@ -24,7 +24,6 @@ fi
 # Build Cleanup
 echo "[CLEAN] Removing temporary files..."
 rm -rf target
-rm -f .env
 rm -f logfile.txt
 rm -f crash.log
 rm -f server_live.log
