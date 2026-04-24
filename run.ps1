@@ -12,6 +12,27 @@ function Show-Header {
     Write-Host ""
 }
 
+# --- Portable JDK Activation ---
+if (Test-Path "$PSScriptRoot\.jdk") {
+    $jdkDir = Get-ChildItem -Path "$PSScriptRoot\.jdk" -Filter "jdk-*" | Select-Object -First 1
+    if ($null -ne $jdkDir) {
+        $env:JAVA_HOME = $jdkDir.FullName
+        $env:PATH = "$($jdkDir.FullName)\bin;$env:PATH"
+        Write-Host "[INFO] Using Portable JDK: $($jdkDir.Name)" -ForegroundColor Gray
+    }
+}
+
+# --- .env Loading ---
+if (Test-Path "$PSScriptRoot\.env") {
+    Get-Content "$PSScriptRoot\.env" | ForEach-Object {
+        if ($_ -match "^(?<name>[^#\s][^=]*)=(?<value>.*)$") {
+            $name = $Matches['name'].Trim()
+            $value = $Matches['value'].Trim()
+            $env:$name = $value
+        }
+    }
+}
+
 function Check-Environment {
     $javaOk = $false
     try {
@@ -83,12 +104,19 @@ switch ($choice) {
         Write-Host "[INFO] Assigned dynamic DB port: $dbPort" -ForegroundColor Gray
 
         docker compose -f docker-compose.local.yml up -d db
-        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running "-Dspring.datasource.url=jdbc:postgresql://localhost:$dbPort/souplesse_pilates"
+        
+        $env:SPRING_PROFILES_ACTIVE = "seed-running"
+        $env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:$dbPort/souplesse_pilates"
+        $env:SPRING_DATASOURCE_USERNAME = "pilates_user"
+        $env:SPRING_DATASOURCE_PASSWORD = "pilates_pass"
+
+        ./mvnw.cmd spring-boot:run
     }
     "3" {
         if (-not $EnvInfo.Java) { Write-Host "[ERROR] Java 21+ is required." -ForegroundColor Red; return }
-        Write-Host "[RUN] Starting Native Mode..." -ForegroundColor Magenta
-        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+        Write-Host "[RUN] Starting Native Mode (using .env settings)..." -ForegroundColor Magenta
+        $env:SPRING_PROFILES_ACTIVE = "seed-running"
+        ./mvnw.cmd spring-boot:run
     }
     "4" {
         Write-Host "[RUN] Cleaning up..."

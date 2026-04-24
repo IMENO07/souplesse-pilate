@@ -37,10 +37,10 @@ Use the unified launcher for your OS:
 - **Windows**: `run.bat`
 - **Linux/Mac**: `./run.sh`
 
-- **Docker Mode**: Runs everything in Docker. Port **8081**.
-- **Hybrid Mode**: Runs DB in Docker (**Dynamic Port**), App natively. Port **8080**.
-- **Native Mode**: Uses your local PostgreSQL. Port **8080**.
-- **Cleanup**: Resets everything.
+- **Docker Mode**: Runs everything in Docker. Port **8081**. uses **Multi-stage caching** for fast builds.
+- **Hybrid Mode**: Runs DB in Docker (**Dynamic Port**), App natively. Overrides credentials via **Env Vars**.
+- **Native Mode**: Uses your local PostgreSQL. Respects **.env** settings automatically.
+- **Cleanup**: Resets everything (Stops Docker, Kills Java).
 
 #### **Method B: Native Development**
 Best for fast development with hot-reload (IDE). Requires a local PostgreSQL.
@@ -82,6 +82,7 @@ The frontend is a React SPA located in `src/main/resources/static/`.
 
 - **No separate npm install/run needed**: The app uses a CDN/Browser-based React setup for simplicity in this monolith architecture.
 - **Hot Reload**: Changes to `.jsx`, `.css`, or `.html` files in the `static` directory are immediate. Just refresh your browser.
+- **Main Class**: The entry point is explicitly defined in `pom.xml` as `souplesse_pilates.studio.souplesse_pilates.SouplessePilatesApplication` to ensure reliable startup.
 
 ---
 
@@ -162,6 +163,21 @@ The application can automatically populate your database with sample data.
 
 ---
 
+## 🏗️ Portability & One-Click Design
+
+The project is designed to be fully portable on Windows and Linux:
+
+### Portable JDK
+If the `.jdk/` folder exists, the launchers (`run.bat` / `run.ps1`) automatically set `JAVA_HOME` and update the `PATH` to use the provided JDK 21, even if Java is not installed on the system.
+
+### .env Integration
+The launcher scripts automatically parse the `.env` file and export its contents as environment variables. This ensures that **Native Mode** correctly picks up your database settings without manual environment setup.
+
+### Dynamic Port Mapping
+Hybrid Mode uses a PowerShell/Python helper to find a free TCP port for the database container. This avoids "Port already in use" errors if you have a system PostgreSQL service running on 5432.
+
+---
+
 ## 🛠️ Deep Troubleshooting
 
 ### Port Conflicts
@@ -213,10 +229,10 @@ Utilisez le lanceur unifié pour votre OS :
 - **Windows** : `run.bat`
 - **Linux/Mac** : `./run.sh`
 
-- **Mode Docker** : Lance tout dans Docker. Port **8081**.
-- **Mode Hybride** : Base dans Docker (**Port Dynamique**), App en natif. Port **8080**.
-- **Mode Natif** : Utilise votre PostgreSQL local. Port **8080**.
-- **Nettoyage** : Réinitialisation complète.
+- **Mode Docker** : Lance tout dans Docker. Port **8081**. Utilise le **cache multi-étapes** pour des builds rapides.
+- **Mode Hybride** : Base dans Docker (**Port Dynamique**), App en natif. Outre-passe les accès via les **Variables d'Env**.
+- **Mode Natif** : Utilise votre PostgreSQL local. Respecte automatiquement le fichier **.env**.
+- **Nettoyage** : Réinitialisation complète (Arrête Docker, Tue Java).
 
 ---
 

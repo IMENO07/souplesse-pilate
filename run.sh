@@ -46,13 +46,18 @@ case $MODE in
             exit 1
         fi
         
-        # Pass the dynamic port to the Spring Boot application
-        ./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running \
-            -Dspring.datasource.url=jdbc:postgresql://localhost:$DB_PORT/souplesse_pilates
+        # Explicitly set configuration to override potential .env online settings
+        export SPRING_PROFILES_ACTIVE=seed-running
+        export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:$DB_PORT/souplesse_pilates
+        export SPRING_DATASOURCE_USERNAME=pilates_user
+        export SPRING_DATASOURCE_PASSWORD=pilates_pass
+        
+        ./mvnw spring-boot:run
         ;;
     3)
         echo "[RUN] Starting NATIVE MODE..."
-        ./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
+        export SPRING_PROFILES_ACTIVE=seed-running
+        ./mvnw spring-boot:run
         ;;
     4)
         echo "[RUN] Cleaning up..."

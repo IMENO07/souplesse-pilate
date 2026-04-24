@@ -10,7 +10,7 @@
 
 ### 📋 Prerequisites
 - **Git**
-- **Java 21**
+- **Java 21** (Included in `.jdk/` folder for portability)
 - **Docker Desktop** (Optional, recommended)
 
 ### 🚀 Launch Methods
@@ -26,10 +26,10 @@ When you run the launcher, you will see several options. Choose the one that fit
 
 | Mode | Best For... | What it does |
 | :--- | :--- | :--- |
-| **1. Docker Mode** | **Quick Start** (Recommended) | Runs both the website and the database inside Docker. No local setup needed. |
-| **2. Hybrid Mode** | **Frontend/Backend Dev** | Runs the Database in Docker with a **Dynamic Port** and the App natively. |
-| **3. Native Mode** | **Custom Database** | Uses your own local PostgreSQL installation. Requires manual setup. |
-| **4. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
+| **1. Docker Mode** | **Quick Start** (Recommended) | Runs everything in Docker. Optimized with **Multi-stage build caching**. |
+| **2. Hybrid Mode** | **Frontend/Backend Dev** | DB in Docker (**Dynamic Port**), App natively with **Environment Overrides**. |
+| **3. Native Mode** | **Custom Database** | Uses local PostgreSQL (defined in `.env`). Full environment variable support. |
+| **4. Cleanup** | **Fixing Issues** | Stops all processes, clears containers, and kills stray Java tasks. |
 
 ---
 
@@ -87,14 +87,14 @@ If you are not a developer and just want to run the platform, follow these simpl
 ---
 
 ### 🛠️ System Health Check
-Before running, you can check if your environment is ready by running these commands:
+Before running, you can verify your environment status:
 
-| Tool | Command to Check | Expected Output |
+| Tool | Command to Check | Purpose |
 | :--- | :--- | :--- |
-| **Java** | `java -version` | Should mention `version "21"` or higher. |
-| **Docker**| `docker ps` | Should list running containers (or be empty, but no error). |
-| **Environment** | `ls -a .env` | Should confirm that `.env` exists. |
-| **Port 8080** | `netstat -ano | findstr :8080` (Win) | Should be empty (if port is free). |
+| **Docker**| `docker info` | Confirms Docker Desktop is running. |
+| **Java** | `java -version` | Should be **JDK 21**. Launcher uses `.jdk/` if present. |
+| **Ports** | `netstat -ano | findstr :8080` | Checks if port 8080 is already in use. |
+| **Processes**| `taskkill /F /IM java.exe` | Kills stray background Java apps if startup fails. |
 
 ---
 
@@ -118,10 +118,10 @@ Lorsque vous lancez le script, plusieurs options s'offrent à vous :
 
 | Mode | Recommandé pour... | Ce qu'il fait |
 | :--- | :--- | :--- |
-| **1. Mode Docker** | **Démarrage Rapide** | Lance le site et la base de données dans Docker. Aucune configuration locale requise. |
-| **2. Mode Hybride** | **Développement Actif** | Lance la base dans Docker avec un **Port Dynamique** et l'App en natif. |
-| **3. Mode Natif** | **Base de Données Locale** | Utilise votre propre installation PostgreSQL locale. |
-| **4. Nettoyage** | **Résoudre les Problèmes** | Arrête tous les processus et vide les données résiduelles. |
+| **1. Mode Docker** | **Démarrage Rapide** | Lance tout dans Docker. Optimisé avec **cache multi-étapes**. |
+| **2. Mode Hybride** | **Développement Actif** | Base dans Docker (**Port Dynamique**) et App en natif. |
+| **3. Mode Natif** | **Base de Données Locale** | Utilise votre PostgreSQL local (configuré via `.env`). |
+| **4. Nettoyage** | **Résoudre les Problèmes** | Arrête les processus et vide les données résiduelles. |
 
 ---
 

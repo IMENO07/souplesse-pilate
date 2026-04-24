@@ -7,8 +7,7 @@ setlocal
 if "%1"=="1" goto mode_docker_full
 if "%1"=="2" goto mode_docker_db
 if "%1"=="3" goto mode_native
-if "%1"=="4" goto mode_portable
-if "%1"=="5" goto mode_cleanup
+if "%1"=="4" goto mode_cleanup
 
 :header
 cls
@@ -17,11 +16,29 @@ echo Souplesse Pilates - Unified Launcher
 echo ==========================================
 echo.
 
-:: 1. Initialize .env if missing
+:: 0. Portable JDK Detection
+if exist "%~dp0.jdk" (
+    for /d %%d in ("%~dp0.jdk\jdk-*") do (
+        if exist "%%d\bin\java.exe" (
+            set "JAVA_HOME=%%d"
+            set "PATH=%%d\bin;%PATH%"
+            echo [INFO] Using Portable JDK: %%d
+        )
+    )
+)
+
+:: 1. Initialize and Load .env
 if not exist .env (
     if exist .env.example (
         echo [INFO] Creating .env from .env.example...
         copy .env.example .env >nul
+    )
+)
+
+:: Load .env into variables (basic parser)
+if exist .env (
+    for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+        set "%%A=%%B"
     )
 )
 
@@ -46,12 +63,26 @@ goto choose_mode
 
 :mode_docker_full
 echo.
+echo [CHECK] Verifying Docker status...
+docker info >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Docker Desktop is not running. Please start Docker and try again.
+    pause
+    goto choose_mode
+)
 echo [RUN] Starting FULL STACK DOCKER...
 call "%~dp0scripts\docker-run.bat"
 goto end
 
 :mode_docker_db
 echo.
+echo [CHECK] Verifying Docker status...
+docker info >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Docker Desktop is not running. Please start Docker and try again.
+    pause
+    goto choose_mode
+)
 echo [RUN] Starting HYBRID MODE (DB in Docker)...
 
 :: Find a free port using PowerShell
@@ -65,17 +96,22 @@ if %errorlevel% neq 0 (
     goto choose_mode
 )
 
-:: Pass the dynamic port to the Spring Boot application
-call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running -Dspring.datasource.url=jdbc:postgresql://localhost:%DB_PORT%/souplesse_pilates
+:: Pass the configuration via environment variables (most reliable for Spring Boot)
+set "SPRING_PROFILES_ACTIVE=seed-running"
+set "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:%DB_PORT%/souplesse_pilates"
+set "SPRING_DATASOURCE_USERNAME=pilates_user"
+set "SPRING_DATASOURCE_PASSWORD=pilates_pass"
+
+call mvnw.cmd spring-boot:run
 goto end
 
 :mode_native
 echo.
 echo [RUN] Starting in NATIVE MODE (Local PostgreSQL)...
 echo [TIP] Ensure your local PostgreSQL is running on port 5432.
-call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+set "SPRING_PROFILES_ACTIVE=seed-running"
+call mvnw.cmd spring-boot:run
 goto end
-
 
 :mode_cleanup
 echo.
