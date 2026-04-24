@@ -32,7 +32,40 @@ When you run the launcher, you will see several options. Choose the one that fit
 | **4. Portable Mode** | **Zero-Config** | Automatically downloads and runs a standalone database. |
 | **5. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
 
-👉 **[View Detailed Step-by-Step Instructions for All Modes](Docs/Running_Guide.md)**
+---
+
+### 🚀 Detailed Step-by-Step Guide
+
+#### **1. Docker Mode (Recommended for Beginners)**
+*Best if you want everything to just work without installing databases or Java.*
+1. **Prerequisites**: Install [Docker Desktop](https://www.docker.com/products/docker-desktop). Make sure it's running.
+2. **Launch**: Double-click `run.bat` (Windows) or type `./run.sh` (Linux).
+3. **Select Mode**: Type `1` and press **Enter**.
+4. **Access**: Go to [http://localhost:8081](http://localhost:8081).
+
+#### **2. Hybrid Mode (Recommended for Developers)**
+*Best for fast development. Database in Docker, App runs natively.*
+1. **Prerequisites**: Install [Docker Desktop](https://www.docker.com/products/docker-desktop) and [Java 21](https://openjdk.org/).
+2. **Launch**: Double-click `run.bat` (Windows) or type `./run.sh` (Linux).
+3. **Select Mode**: Type `2` and press **Enter**.
+4. **Access**: Go to [http://localhost:8080](http://localhost:8080).
+
+#### **3. Native Mode (For Advanced Users)**
+*Best if you already have a local PostgreSQL server.*
+1. **Prerequisites**: Install [Java 21](https://openjdk.org/) and [PostgreSQL](https://www.postgresql.org/).
+2. **Setup**: Create a DB named `souplesse_pilates` and update `.env` with your credentials.
+3. **Launch**: Select Mode `3`.
+4. **Access**: Go to [http://localhost:8080](http://localhost:8080).
+
+#### **4. Portable Mode (Zero-Config)**
+*Best for testing or if you can't install anything on your PC.*
+1. **Launch**: Double-click `run.bat` (Windows).
+2. **Select Mode**: Type `4` and press **Enter**. Script will auto-setup the DB.
+3. **Access**: Go to [http://localhost:8080](http://localhost:8080).
+
+#### **5. Cleanup (The Reset Button)**
+*Use this to fix port errors or clear stray processes.*
+1. **Launch**: Select Mode `5`. It will stop containers and kill Java background tasks.
 
 ---
 
@@ -85,6 +118,41 @@ Lorsque vous lancez le script, plusieurs options s'offrent à vous :
 | **3. Mode Natif** | **Base de Données Locale** | Utilise votre propre installation PostgreSQL locale. |
 | **4. Mode Portable** | **Zéro Configuration** | Télécharge et lance automatiquement une base de données autonome. |
 | **5. Nettoyage** | **Résoudre les Problèmes** | Arrête tous les processus et vide les données résiduelles. |
+
+---
+
+### 🚀 Guide Détaillé Étape par Étape
+
+#### **1. Mode Docker (Recommandé pour Débuter)**
+*Idéal si vous voulez que tout fonctionne sans installer de base de données ou Java.*
+1. **Prérequis** : Installez [Docker Desktop](https://www.docker.com/products/docker-desktop). Assurez-vous qu'il est lancé.
+2. **Lancement** : Double-cliquez sur `run.bat` (Windows) ou tapez `./run.sh` (Linux) dans un terminal.
+3. **Choisir le Mode** : Tapez `1` et appuyez sur **Entrée**.
+4. **Accès** : Allez sur [http://localhost:8081](http://localhost:8081).
+
+#### **2. Mode Hybride (Recommandé pour les Développeurs)**
+*Idéal pour un développement rapide. Base de données dans Docker, App lancée en natif.*
+1. **Prérequis** : Installez [Docker Desktop](https://www.docker.com/products/docker-desktop) et [Java 21](https://openjdk.org/).
+2. **Lancement** : Double-cliquez sur `run.bat` (Windows) ou tapez `./run.sh` (Linux).
+3. **Choisir le Mode** : Tapez `2` et appuyez sur **Entrée**.
+4. **Accès** : Allez sur [http://localhost:8080](http://localhost:8080).
+
+#### **3. Mode Natif (Pour Utilisateurs Avancés)**
+*Idéal si vous avez déjà un serveur PostgreSQL local.*
+1. **Prérequis** : Installez [Java 21](https://openjdk.org/) et [PostgreSQL](https://www.postgresql.org/).
+2. **Configuration** : Créez une base nommée `souplesse_pilates` et mettez à jour `.env` avec vos accès.
+3. **Lancement** : Sélectionnez le Mode `3`.
+4. **Accès** : Allez sur [http://localhost:8080](http://localhost:8080).
+
+#### **4. Mode Portable (Zéro Configuration)**
+*Idéal pour tester ou si vous ne pouvez rien installer sur votre PC.*
+1. **Lancement** : Double-cliquez sur `run.bat` (Windows).
+2. **Choisir le Mode** : Tapez `4` et appuyez sur **Entrée**. Le script configure tout seul la base.
+3. **Accès** : Allez sur [http://localhost:8080](http://localhost:8080).
+
+#### **5. Nettoyage (Le bouton Reset)**
+*À utiliser pour corriger des erreurs de port ou des processus bloqués.*
+1. **Lancement** : Sélectionnez le Mode `5`. Cela arrêtera les conteneurs et les tâches Java en arrière-plan.
 
 ---
 
