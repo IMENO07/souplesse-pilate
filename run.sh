@@ -6,7 +6,14 @@
 
 # Load environment variables from .env if it exists
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Ignore comments and empty lines
+        if [[ ! "$line" =~ ^# ]] && [[ -n "$line" ]]; then
+            # Remove any trailing \r from Windows line endings
+            clean_line=$(echo "$line" | sed 's/\r$//')
+            export "$clean_line"
+        fi
+    done < .env
     echo "[OK] Loaded environment variables from .env"
 else
     if [ -f .env.example ]; then
@@ -30,8 +37,18 @@ case $MODE in
         ;;
     2)
         echo "[RUN] Starting HYBRID MODE (DB in Docker)..."
-        docker compose up -d db
-        ./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running
+        # Find a free port for the database
+        export DB_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()' 2>/dev/null || echo 5434)
+        echo "[INFO] Assigned dynamic DB port: $DB_PORT"
+        
+        if ! docker compose -f docker-compose.local.yml up -d db; then
+            echo "❌ Failed to start Docker database. Check your Docker permissions."
+            exit 1
+        fi
+        
+        # Pass the dynamic port to the Spring Boot application
+        ./mvnw spring-boot:run -Dspring-boot.run.profiles=seed-running \
+            -Dspring.datasource.url=jdbc:postgresql://localhost:$DB_PORT/souplesse_pilates
         ;;
     3)
         echo "[RUN] Starting NATIVE MODE..."
@@ -39,7 +56,6 @@ case $MODE in
         ;;
     4)
         echo "[RUN] Cleaning up..."
-        # If clean.sh doesn't exist yet, we'll create it soon or just run commands
         if [ -f ./scripts/clean.sh ]; then
             ./scripts/clean.sh
         else

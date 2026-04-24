@@ -58,11 +58,10 @@ Write-Host "`nChoose Running Mode:" -ForegroundColor White
 Write-Host "[1] Docker Mode (Full Stack: App + DB in Docker)"
 Write-Host "[2] Hybrid Mode (DB in Docker, App runs Natively)"
 Write-Host "[3] Native Mode (Use your local PostgreSQL)"
-Write-Host "[4] Portable Mode (Zero-Config)"
-Write-Host "[5] Cleanup (Reset environment)"
+Write-Host "[4] Cleanup (Reset environment)"
 Write-Host "[Q] Quit"
 
-$choice = Read-Host "`nSelect mode [Default=1]"
+$choice = Read-Host "`nSelect mode (1-4) [Default=1]"
 if ($choice -eq "") { $choice = "1" }
 
 switch ($choice) {
@@ -74,8 +73,17 @@ switch ($choice) {
     "2" {
         if (-not $EnvInfo.Docker) { Write-Host "[ERROR] Docker is required for this mode." -ForegroundColor Red; return }
         Write-Host "[RUN] Starting Hybrid Mode..." -ForegroundColor Magenta
-        docker compose up -d db
-        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+        
+        # Find a free port
+        $s = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any,0)
+        $s.Start()
+        $dbPort = $s.LocalEndpoint.Port
+        $s.Stop()
+        $env:DB_PORT = $dbPort
+        Write-Host "[INFO] Assigned dynamic DB port: $dbPort" -ForegroundColor Gray
+
+        docker compose -f docker-compose.local.yml up -d db
+        ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running "-Dspring.datasource.url=jdbc:postgresql://localhost:$dbPort/souplesse_pilates"
     }
     "3" {
         if (-not $EnvInfo.Java) { Write-Host "[ERROR] Java 21+ is required." -ForegroundColor Red; return }
@@ -83,10 +91,6 @@ switch ($choice) {
         ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
     }
     "4" {
-        Write-Host "[RUN] Starting Portable Mode..." -ForegroundColor Magenta
-        ./run.bat 4
-    }
-    "5" {
         Write-Host "[RUN] Cleaning up..."
         ./scripts/clean.bat
     }

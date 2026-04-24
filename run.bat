@@ -30,11 +30,10 @@ echo Choose Running Mode:
 echo [1] Docker Mode (Full Stack: App + DB in Docker)
 echo [2] Hybrid Mode (DB in Docker, App runs Natively)
 echo [3] Native Mode (Use your local PostgreSQL/pgAdmin)
-echo [4] Portable Mode (Auto-setup everything into .db folder)
-echo [5] Cleanup (Stop everything and reset data)
+echo [4] Cleanup (Stop everything and reset data)
 echo [Q] Quit
 echo.
-set /p "MODE=Select mode (1-5) [Default=1]: "
+set /p "MODE=Select mode (1-4) [Default=1]: "
 
 if "%MODE%"=="" set "MODE=1"
 if /i "%MODE%"=="q" exit /b 0
@@ -42,8 +41,7 @@ if /i "%MODE%"=="q" exit /b 0
 if "%MODE%"=="1" goto mode_docker_full
 if "%MODE%"=="2" goto mode_docker_db
 if "%MODE%"=="3" goto mode_native
-if "%MODE%"=="4" goto mode_portable
-if "%MODE%"=="5" goto mode_cleanup
+if "%MODE%"=="4" goto mode_cleanup
 goto choose_mode
 
 :mode_docker_full
@@ -55,13 +53,20 @@ goto end
 :mode_docker_db
 echo.
 echo [RUN] Starting HYBRID MODE (DB in Docker)...
-docker compose up -d db
+
+:: Find a free port using PowerShell
+for /f %%a in ('powershell -Command "$s=[System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any,0);$s.Start();$s.LocalEndpoint.Port;$s.Stop()"') do set DB_PORT=%%a
+echo [INFO] Assigned dynamic DB port: %DB_PORT%
+
+docker compose -f docker-compose.local.yml up -d db
 if %errorlevel% neq 0 (
-    echo [ERROR] Failed to start Docker DB.
+    echo [ERROR] Failed to start Docker DB. Check your Docker permissions.
     pause
     goto choose_mode
 )
-call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
+
+:: Pass the dynamic port to the Spring Boot application
+call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running -Dspring.datasource.url=jdbc:postgresql://localhost:%DB_PORT%/souplesse_pilates
 goto end
 
 :mode_native
@@ -71,18 +76,6 @@ echo [TIP] Ensure your local PostgreSQL is running on port 5432.
 call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=seed-running
 goto end
 
-:mode_portable
-echo.
-echo [RUN] Starting in PORTABLE MODE...
-call "%~dp0scripts\setup-db.bat"
-if %errorlevel% neq 0 (
-    echo [ERROR] Failed to start Portable DB.
-    pause
-    goto choose_mode
-)
-echo [OK] Portable DB started on port 5433.
-call mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=portable,seed-running
-goto end
 
 :mode_cleanup
 echo.

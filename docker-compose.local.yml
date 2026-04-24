@@ -11,7 +11,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=pilates_pass
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:15-alpine
@@ -20,7 +21,12 @@ services:
       - POSTGRES_USER=pilates_user
       - POSTGRES_PASSWORD=pilates_pass
     ports:
-      - "5434:5432"
+      - "${DB_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pilates_user -d souplesse_pilates"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data_test:/var/lib/postgresql/data
 

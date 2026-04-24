@@ -27,10 +27,9 @@ When you run the launcher, you will see several options. Choose the one that fit
 | Mode | Best For... | What it does |
 | :--- | :--- | :--- |
 | **1. Docker Mode** | **Quick Start** (Recommended) | Runs both the website and the database inside Docker. No local setup needed. |
-| **2. Hybrid Mode** | **Frontend/Backend Dev** | Runs only the Database in Docker. The App runs on your machine for faster coding. |
+| **2. Hybrid Mode** | **Frontend/Backend Dev** | Runs the Database in Docker with a **Dynamic Port** and the App natively. |
 | **3. Native Mode** | **Custom Database** | Uses your own local PostgreSQL installation. Requires manual setup. |
-| **4. Portable Mode** | **Zero-Config** | Automatically downloads and runs a standalone database. |
-| **5. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
+| **4. Cleanup** | **Fixing Issues** | Stops all processes and clears stray data. Use this if the app won't start. |
 
 ---
 
@@ -57,15 +56,9 @@ When you run the launcher, you will see several options. Choose the one that fit
 3. **Launch**: Select Mode `3`.
 4. **Access**: Go to [http://localhost:8080](http://localhost:8080).
 
-#### **4. Portable Mode (Zero-Config)**
-*Best for testing or if you can't install anything on your PC.*
-1. **Launch**: Double-click `run.bat` (Windows).
-2. **Select Mode**: Type `4` and press **Enter**. Script will auto-setup the DB.
-3. **Access**: Go to [http://localhost:8080](http://localhost:8080).
-
-#### **5. Cleanup (The Reset Button)**
+#### **4. Cleanup (The Reset Button)**
 *Use this to fix port errors or clear stray processes.*
-1. **Launch**: Select Mode `5`. It will stop containers and kill Java background tasks.
+1. **Launch**: Select Mode `4`. It will stop containers and kill Java background tasks.
 
 ---
 
@@ -114,10 +107,9 @@ Lorsque vous lancez le script, plusieurs options s'offrent à vous :
 | Mode | Recommandé pour... | Ce qu'il fait |
 | :--- | :--- | :--- |
 | **1. Mode Docker** | **Démarrage Rapide** | Lance le site et la base de données dans Docker. Aucune configuration locale requise. |
-| **2. Mode Hybride** | **Développement Actif** | Lance uniquement la base de données dans Docker. L'application tourne sur votre machine. |
+| **2. Mode Hybride** | **Développement Actif** | Lance la base dans Docker avec un **Port Dynamique** et l'App en natif. |
 | **3. Mode Natif** | **Base de Données Locale** | Utilise votre propre installation PostgreSQL locale. |
-| **4. Mode Portable** | **Zéro Configuration** | Télécharge et lance automatiquement une base de données autonome. |
-| **5. Nettoyage** | **Résoudre les Problèmes** | Arrête tous les processus et vide les données résiduelles. |
+| **4. Nettoyage** | **Résoudre les Problèmes** | Arrête tous les processus et vide les données résiduelles. |
 
 ---
 
@@ -144,15 +136,9 @@ Lorsque vous lancez le script, plusieurs options s'offrent à vous :
 3. **Lancement** : Sélectionnez le Mode `3`.
 4. **Accès** : Allez sur [http://localhost:8080](http://localhost:8080).
 
-#### **4. Mode Portable (Zéro Configuration)**
-*Idéal pour tester ou si vous ne pouvez rien installer sur votre PC.*
-1. **Lancement** : Double-cliquez sur `run.bat` (Windows).
-2. **Choisir le Mode** : Tapez `4` et appuyez sur **Entrée**. Le script configure tout seul la base.
-3. **Accès** : Allez sur [http://localhost:8080](http://localhost:8080).
-
-#### **5. Nettoyage (Le bouton Reset)**
+#### **4. Nettoyage (Le bouton Reset)**
 *À utiliser pour corriger des erreurs de port ou des processus bloqués.*
-1. **Lancement** : Sélectionnez le Mode `5`. Cela arrêtera les conteneurs et les tâches Java en arrière-plan.
+1. **Lancement** : Sélectionnez le Mode `4`. Cela arrêtera les conteneurs et les tâches Java en arrière-plan.
 
 ---
 
