@@ -41,7 +41,7 @@ The launcher provides several modes:
 - **Docker Mode**: Runs everything in Docker. Port **8081**.
 - **Hybrid Mode**: Runs DB in Docker, App natively. Port **8080**.
 - **Native Mode**: Uses your local PostgreSQL. Port **8080**.
-- **Portable Mode**: (Windows) Zero-config mode. Port **8080**.
+- **Portable Mode**: Automatic zero-config setup. Port **8080**.
 
 #### **Method B: Native Development**
 Best for fast development with hot-reload (IDE). Requires a local PostgreSQL.
@@ -92,8 +92,8 @@ The frontend is a React SPA located in `src/main/resources/static/`.
 | :--- | :--- |
 | `run.sh` / `.bat` | Universal runner (Native / Docker / Portable). |
 | `docker-run.sh` / `.bat` | Isolated Docker environment using port 8081. |
-| `clean.bat` | **Windows only**: Completely resets the project (stoppe containers, clears volumes). |
-| `setup-db.bat` | **Windows only**: Helper to set up local PostgreSQL. |
+| `clean.sh` / `.bat` | Completely resets the project (stops containers, clears volumes). |
+| `setup-db.sh` / `.bat` | Helper to set up local PostgreSQL. |
 
 ---
 
@@ -218,7 +218,7 @@ Le lanceur propose plusieurs modes :
 - **Mode Docker** : Lance tout dans Docker. Port **8081**.
 - **Mode Hybride** : Base de données dans Docker, App en natif. Port **8080**.
 - **Mode Natif** : Utilise votre PostgreSQL local. Port **8080**.
-- **Mode Portable** : (Windows) Mode sans configuration. Port **8080**.
+- **Mode Portable** : Configuration automatique zéro-friction. Port **8080**.
 
 ---
 

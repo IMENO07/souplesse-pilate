@@ -24,7 +24,7 @@ These scripts will let you choose between:
 1. **Docker Mode** (Full Stack: App + DB in Docker)
 2. **Hybrid Mode** (DB in Docker, App runs Natively)
 3. **Native Mode** (Use your local PostgreSQL)
-4. **Portable Mode** (Windows only - Zero config)
+4. **Portable Mode** (Automatic zero-config setup)
 5. **Cleanup** (Reset the environment)
 
 #### **Quick Access**
@@ -50,7 +50,7 @@ Ces scripts vous permettent de choisir entre :
 1. **Mode Docker** (Stack complète : App + DB dans Docker)
 2. **Mode Hybride** (DB dans Docker, App lancée nativement)
 3. **Mode Natif** (Utilise votre PostgreSQL local)
-4. **Mode Portable** (Windows uniquement - Zero config)
+4. **Mode Portable** (Configuration automatique zéro-friction)
 5. **Nettoyage** (Réinitialise l'environnement)
 
 #### **Accès Rapide**
