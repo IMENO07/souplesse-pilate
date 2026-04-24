@@ -86,6 +86,18 @@ If you are not a developer and just want to run the platform, follow these simpl
 
 ---
 
+### 🛠️ System Health Check
+Before running, you can check if your environment is ready by running these commands:
+
+| Tool | Command to Check | Expected Output |
+| :--- | :--- | :--- |
+| **Java** | `java -version` | Should mention `version "21"` or higher. |
+| **Docker**| `docker ps` | Should list running containers (or be empty, but no error). |
+| **Environment** | `ls -a .env` | Should confirm that `.env` exists. |
+| **Port 8080** | `netstat -ano | findstr :8080` (Win) | Should be empty (if port is free). |
+
+---
+
 ## 🇫🇷 Guide de Démarrage Rapide
 
 ### 📋 Prérequis
@@ -163,6 +175,18 @@ Si vous n'êtes pas un développeur et que vous souhaitez simplement lancer la p
 
 #### **Accès Rapide**
 - Application : [http://localhost:8080](http://localhost:8080) (8081 en mode Full Docker)
+
+---
+
+### 🛠️ Vérification du Système
+Avant de lancer, vous pouvez vérifier que votre environnement est prêt avec ces commandes :
+
+| Outil | Commande de test | Résultat attendu |
+| :--- | :--- | :--- |
+| **Java** | `java -version` | Doit mentionner la `version "21"` ou plus. |
+| **Docker**| `docker ps` | Doit lister les conteneurs (ou être vide, mais sans erreur). |
+| **Config** | `ls -a .env` | Doit confirmer que le fichier `.env` existe. |
+| **Port 8080** | `lsof -i :8080` (Linux) | Doit être vide (si le port est libre). |
 
 ---
 
