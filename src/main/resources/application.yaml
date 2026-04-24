@@ -17,10 +17,10 @@ spring:
     init:
       mode: never
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: imene7905@gmail.com
-    password: gxstwinuubgmxhsb
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:imene7905@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:gxstwinuubgmxhsb}
     properties:
       mail:
         smtp:
@@ -42,5 +42,5 @@ server:
 
 app:
   mail:
-    from: imene7905@gmail.com          
-    studio-name: "Souplesse Pilates Studio"
+    from: ${APP_MAIL_FROM:imene7905@gmail.com}          
+    studio-name: ${APP_MAIL_STUDIO_NAME:"Souplesse Pilates Studio"}

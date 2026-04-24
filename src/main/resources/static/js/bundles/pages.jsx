@@ -316,6 +316,19 @@ function AdminContentPage() {
     </>
   );
 }
+
+function AdminSettingsPage() {
+  return (
+    <>
+      <div className="admin-header">
+        <h1 className="admin-header-title">Paramètres Système</h1>
+      </div>
+      <div className="admin-layout">
+        <AdminSettingsSection />
+      </div>
+    </>
+  );
+}
 /* ── Home Page ──────────────────────────────────── */
 function HomePage() {
   const [courses, setCourses] = React.useState([]);

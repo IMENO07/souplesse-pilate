@@ -1505,6 +1505,176 @@ function TestimonialAdmin() {
   );
 }
 
+/* ── Admin Settings Section ────────────────────── */
+function AdminSettingsSection() {
+  const [settings, setSettings] = React.useState({
+    MAIL_HOST: '',
+    MAIL_PORT: '',
+    MAIL_USERNAME: '',
+    MAIL_PASSWORD: '',
+    MAIL_FROM: '',
+    MAIL_STUDIO_NAME: ''
+  });
+  const [testEmail, setTestEmail] = React.useState('');
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const showToast = window.useToastStore.getState().showToast;
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const resp = await fetch('/admin/settings/email', {
+          headers: { 'Authorization': `Bearer ${window.useAuthStore.getState().token}` }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setSettings(prev => ({ ...prev, ...data }));
+        }
+      } catch (e) {
+        console.error("Failed to fetch settings", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const resp = await fetch('/admin/settings/email', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.useAuthStore.getState().token}` 
+        },
+        body: JSON.stringify(settings)
+      });
+      if (resp.ok) {
+        showToast('Configuration mise à jour avec succès ✓');
+      } else {
+        throw new Error('Failed to save');
+      }
+    } catch (e) {
+      showToast('Erreur lors de l\'enregistrement.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="ui-skeleton" style={{ height: 400 }}></div>;
+
+  return (
+    <div className="admin-card">
+      <div className="admin-card-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ocean)" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span className="admin-card-title">Configuration Système</span>
+        </div>
+      </div>
+      <div className="admin-card-body">
+        <form onSubmit={handleSave} style={{ display: 'grid', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <Input 
+              label="Serveur SMTP (Host)" 
+              value={settings.MAIL_HOST} 
+              onChange={e => setSettings({...settings, MAIL_HOST: e.target.value})}
+              placeholder="smtp.gmail.com"
+            />
+            <Input 
+              label="Port SMTP" 
+              type="number"
+              value={settings.MAIL_PORT} 
+              onChange={e => setSettings({...settings, MAIL_PORT: e.target.value})}
+              placeholder="587"
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <Input 
+              label="Nom d'utilisateur (Email)" 
+              value={settings.MAIL_USERNAME} 
+              onChange={e => setSettings({...settings, MAIL_USERNAME: e.target.value})}
+              placeholder="studio@gmail.com"
+            />
+            <Input 
+              label="Mot de passe (App Password)" 
+              type="password"
+              value={settings.MAIL_PASSWORD} 
+              onChange={e => setSettings({...settings, MAIL_PASSWORD: e.target.value})}
+              placeholder="••••••••••••••••"
+            />
+          </div>
+
+          <Divider label="Personnalisation des Emails" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <Input 
+              label="Adresse d'expédition (From)" 
+              value={settings.MAIL_FROM} 
+              onChange={e => setSettings({...settings, MAIL_FROM: e.target.value})}
+              placeholder="noreply@souplesse.dz"
+            />
+            <Input 
+              label="Nom du Studio" 
+              value={settings.MAIL_STUDIO_NAME} 
+              onChange={e => setSettings({...settings, MAIL_STUDIO_NAME: e.target.value})}
+              placeholder="Souplesse Pilates Alger"
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+            <Button variant="primary" type="submit" loading={saving}>
+              Enregistrer les modifications
+            </Button>
+          </div>
+        </form>
+
+        <Divider label="Test de Connexion" />
+        
+        <div style={{ background: '#f8fafc', padding: 20, borderRadius: 8, border: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 13, marginBottom: 15, color: '#64748b' }}>
+            Envoyez un email de test pour vérifier que vos paramètres SMTP sont corrects. 
+            <strong> Enregistrez vos modifications avant de tester.</strong>
+          </p>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+            <div style={{ flex: 1 }}>
+              <Input 
+                label="Email de destination" 
+                placeholder="votre@email.com" 
+                value={testEmail} 
+                onChange={e => setTestEmail(e.target.value)}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                if (!testEmail) return showToast('Veuillez saisir un email.');
+                try {
+                  const resp = await fetch(`/admin/settings/email/test?targetEmail=${encodeURIComponent(testEmail)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${window.useAuthStore.getState().token}` }
+                  });
+                  if (resp.ok) showToast('E-mail de test envoyé ✓');
+                  else {
+                    const txt = await resp.text();
+                    showToast('Erreur: ' + (txt || 'Inconnu'));
+                  }
+                } catch (e) { showToast('Erreur de connexion.'); }
+              }}
+            >
+              Envoyer Test
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Global Exports
 window.AdminStats = AdminStats;
 window.AdminCharts = AdminCharts;
@@ -1517,3 +1687,4 @@ window.InstructorsTable = InstructorsTable;
 window.InstructorForm = InstructorForm;
 window.ContentAdmin = ContentAdmin;
 window.LogArchiveDialog = LogArchiveDialog;
+window.AdminSettingsSection = AdminSettingsSection;
