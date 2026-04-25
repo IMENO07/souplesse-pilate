@@ -37,11 +37,10 @@ Use the unified launcher for your OS:
 - **Windows**: `run.bat`
 - **Linux/Mac**: `./run.sh`
 
-The launcher provides several modes:
-- **Docker Mode**: Runs everything in Docker. Port **8081**.
-- **Hybrid Mode**: Runs DB in Docker, App natively. Port **8080**.
-- **Native Mode**: Uses your local PostgreSQL. Port **8080**.
-- **Portable Mode**: (Windows) Zero-config mode. Port **8080**.
+- **Docker Mode**: Runs everything in Docker. Port **8081**. uses **Multi-stage caching** for fast builds.
+- **Hybrid Mode**: Runs DB in Docker (**Dynamic Port**), App natively. Overrides credentials via **Env Vars**.
+- **Native Mode**: Uses your local PostgreSQL. Respects **.env** settings automatically.
+- **Cleanup**: Resets everything (Stops Docker, Kills Java).
 
 #### **Method B: Native Development**
 Best for fast development with hot-reload (IDE). Requires a local PostgreSQL.
@@ -83,6 +82,7 @@ The frontend is a React SPA located in `src/main/resources/static/`.
 
 - **No separate npm install/run needed**: The app uses a CDN/Browser-based React setup for simplicity in this monolith architecture.
 - **Hot Reload**: Changes to `.jsx`, `.css`, or `.html` files in the `static` directory are immediate. Just refresh your browser.
+- **Main Class**: The entry point is explicitly defined in `pom.xml` as `souplesse_pilates.studio.souplesse_pilates.SouplessePilatesApplication` to ensure reliable startup.
 
 ---
 
@@ -90,10 +90,10 @@ The frontend is a React SPA located in `src/main/resources/static/`.
 
 | Script | Purpose |
 | :--- | :--- |
-| `run.sh` / `.bat` | Universal runner (Native / Docker / Portable). |
+| `run.sh` / `.bat` | Universal runner (Native / Docker / Hybrid). |
 | `docker-run.sh` / `.bat` | Isolated Docker environment using port 8081. |
-| `clean.bat` | **Windows only**: Completely resets the project (stoppe containers, clears volumes). |
-| `setup-db.bat` | **Windows only**: Helper to set up local PostgreSQL. |
+| `clean.sh` / `.bat` | Resets the project (stops containers, clears volumes, stays safe for .env). |
+| `setup-db.sh` / `.bat` | Helper to set up local PostgreSQL. |
 
 ---
 
@@ -131,7 +131,7 @@ To connect to the database using an external tool (pgAdmin, DBeaver, IntelliJ), 
 | Setting | Value |
 | :--- | :--- |
 | **Host** | `localhost` |
-| **Port** | `5434` (Docker) or `5432` (Native) or `5433` (Portable) |
+| **Port** | `Dynamic` (Hybrid) or `5434` (Docker) or `5432` (Native) |
 | **Database** | `souplesse_pilates` |
 | **User** | `pilates_user` |
 | **Password** | `pilates_pass` |
@@ -160,6 +160,21 @@ The application can automatically populate your database with sample data.
 
 > [!IMPORTANT]
 > The `seed-running` profile will **DELETE all existing data** in the database on startup to ensure a consistent test state.
+
+---
+
+## 🏗️ Portability & One-Click Design
+
+The project is designed to be fully portable on Windows and Linux:
+
+### Portable JDK
+If the `.jdk/` folder exists, the launchers (`run.bat` / `run.ps1`) automatically set `JAVA_HOME` and update the `PATH` to use the provided JDK 21, even if Java is not installed on the system.
+
+### .env Integration
+The launcher scripts automatically parse the `.env` file and export its contents as environment variables. This ensures that **Native Mode** correctly picks up your database settings without manual environment setup.
+
+### Dynamic Port Mapping
+Hybrid Mode uses a PowerShell/Python helper to find a free TCP port for the database container. This avoids "Port already in use" errors if you have a system PostgreSQL service running on 5432.
 
 ---
 
@@ -214,11 +229,10 @@ Utilisez le lanceur unifié pour votre OS :
 - **Windows** : `run.bat`
 - **Linux/Mac** : `./run.sh`
 
-Le lanceur propose plusieurs modes :
-- **Mode Docker** : Lance tout dans Docker. Port **8081**.
-- **Mode Hybride** : Base de données dans Docker, App en natif. Port **8080**.
-- **Mode Natif** : Utilise votre PostgreSQL local. Port **8080**.
-- **Mode Portable** : (Windows) Mode sans configuration. Port **8080**.
+- **Mode Docker** : Lance tout dans Docker. Port **8081**. Utilise le **cache multi-étapes** pour des builds rapides.
+- **Mode Hybride** : Base dans Docker (**Port Dynamique**), App en natif. Outre-passe les accès via les **Variables d'Env**.
+- **Mode Natif** : Utilise votre PostgreSQL local. Respecte automatiquement le fichier **.env**.
+- **Nettoyage** : Réinitialisation complète (Arrête Docker, Tue Java).
 
 ---
 
@@ -255,7 +269,7 @@ Pour vous connecter à la base de données via un outil externe (pgAdmin, DBeave
 | Paramètre | Valeur |
 | :--- | :--- |
 | **Hôte** | `localhost` |
-| **Port** | `5434` (Docker) ou `5432` (Natif) ou `5433` (Portable) |
+| **Port** | `Dynamique` (Hybride) ou `5434` (Docker) ou `5432` (Natif) |
 | **Base de données** | `souplesse_pilates` |
 | **Utilisateur** | `pilates_user` |
 | **Mot de passe** | `pilates_pass` |

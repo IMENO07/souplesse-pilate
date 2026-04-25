@@ -3,7 +3,7 @@ package souplesse_pilates.studio.souplesse_pilates.services.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -11,6 +11,9 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import souplesse_pilates.studio.souplesse_pilates.domain.entities.Reservation;
 import souplesse_pilates.studio.souplesse_pilates.services.EmailService;
+import souplesse_pilates.studio.souplesse_pilates.services.SettingService;
+
+import java.util.Properties;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -20,14 +23,16 @@ import jakarta.mail.internet.MimeMessage;
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
+    private final SettingService settingService;
 
-    @Value("${app.mail.from}")
-    private String fromAddress;
-
-    @Value("${app.mail.studio-name}")
-    private String studioName;
+    // Default fallbacks from application.yaml if DB is empty
+    @Value("${spring.mail.host}")     private String defaultHost;
+    @Value("${spring.mail.port}")     private int    defaultPort;
+    @Value("${spring.mail.username}") private String defaultUser;
+    @Value("${spring.mail.password}") private String defaultPass;
+    @Value("${app.mail.from}")        private String defaultFrom;
+    @Value("${app.mail.studio-name}") private String defaultStudio;
 
     // ─── Client Confirmation ───────────────────────────────────────────────────
 
@@ -35,6 +40,8 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendClientConfirmation(Reservation reservation) {
         try {
+            String studioName = settingService.getSetting("MAIL_STUDIO_NAME", defaultStudio);
+
             Context ctx = new Context();
             ctx.setVariable("studioName",      studioName);
             ctx.setVariable("firstName",       reservation.getFirstName());
@@ -68,6 +75,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendInstructorNotification(Reservation reservation) {
         try {
+            String studioName = settingService.getSetting("MAIL_STUDIO_NAME", defaultStudio);
             String instructorEmail = reservation.getCourse().getInstructor().getEmail();
 
             Context ctx = new Context();
@@ -97,10 +105,29 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    @Override
+    public void sendTestEmail(String toEmail) {
+        try {
+            sendHtmlEmail(
+                toEmail,
+                "Test Email — " + settingService.getSetting("MAIL_STUDIO_NAME", defaultStudio),
+                "<p>This is a test email to verify your SMTP configuration.</p><p>If you received this, your email settings are working correctly!</p>"
+            );
+            log.info("Test email sent successfully to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send test email to {} — {}", toEmail, e.getMessage());
+            throw new RuntimeException("Email test failed: " + e.getMessage());
+        }
+    }
+
     // ─── Shared HTML sender ────────────────────────────────────────────────────
 
     private void sendHtmlEmail(String to, String subject, String htmlBody)
             throws MessagingException {
+        
+        JavaMailSenderImpl mailSender = createDynamicMailSender();
+        String fromAddress = settingService.getSetting("MAIL_FROM", defaultFrom);
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setFrom(fromAddress);
@@ -108,5 +135,22 @@ public class EmailServiceImpl implements EmailService {
         helper.setSubject(subject);
         helper.setText(htmlBody, true); // true = HTML
         mailSender.send(message);
+    }
+
+    private JavaMailSenderImpl createDynamicMailSender() {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        
+        mailSender.setHost(settingService.getSetting("MAIL_HOST", defaultHost));
+        mailSender.setPort(Integer.parseInt(settingService.getSetting("MAIL_PORT", String.valueOf(defaultPort))));
+        mailSender.setUsername(settingService.getSetting("MAIL_USERNAME", defaultUser));
+        mailSender.setPassword(settingService.getSetting("MAIL_PASSWORD", defaultPass));
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "false");
+
+        return mailSender;
     }
 }

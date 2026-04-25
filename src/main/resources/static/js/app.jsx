@@ -16,7 +16,8 @@ const router = createHashRouter([
       { path: "classes", element: <AdminClassesPage /> },
       { path: "instructors", element: <AdminInstructorsPage /> },
       { path: "clients", element: <AdminClientsPage /> },
-      { path: "content", element: <AdminContentPage /> }
+      { path: "content", element: <AdminContentPage /> },
+      { path: "settings", element: <AdminSettingsPage /> }
     ]
   }
 ]);
